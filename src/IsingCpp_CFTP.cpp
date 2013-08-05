@@ -244,7 +244,7 @@ IntegerMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector threshol
 }
 
 
-
+// HELPER FUNCTIONS //
 // Hamiltonian:
 // [[Rcpp::export]]
 double H(NumericMatrix J, IntegerVector s, NumericVector h)
@@ -262,96 +262,204 @@ double H(NumericMatrix J, IntegerVector s, NumericVector h)
   return(Res);
 }
 
-// R wrappers:
-/*** R
-IsingSampler <- function(n, graph, thresholds, beta = 1, nIter = 100, responses = c(0L, 1L), method = c("metropolis","exact","direct"))
+
+// Likelihood without Z
+// [[Rcpp::export]]
+double f(IntegerMatrix Y, NumericMatrix J, NumericVector h)
 {
-  stopifnot(!missing(graph)|!missing(thresholds))
-  stopifnot(isSymmetric(graph))  
-  stopifnot(length(responses)==2)
-  if (any(diag(graph)!=0))
-    {
-      diag(graph) <- 0
-      warning("Diagonal set to 0")
-    }
-  method <- method[1]
-  if (! method %in% c("metropolis","exact","direct")) stop("method must be 'metropolis', 'exact', or 'direct'")
-  
-  if (method %in% c("metropolis","exact"))
+  double Res = 1;
+  int Np = Y.nrow();
+  int Ni = J.ncol();
+  IntegerVector s(Ni);
+  for (int p=0;p<Np;p++)
   {
-    Res <- IsingSamplerCpp(as.integer(n), graph, thresholds, beta, as.integer(nIter), as.integer(responses), as.logical(method == "exact"))                 
-    
-    if (any(is.na(Res)) & method == "exact")
+    for (int i=0;i<Ni;i++)
     {
-      warning("NA's detected, this means that no exact sample was drawn after 100 couplings to the past. Use higher nIter value or method='metropolis' for inexact sampling.")
+      s[i] = Y(p,i);
     }
-  } else 
-  {
-      Res <- IsingDir(n, graph, thresholds, beta, responses)
+    Res *= exp(-1.0 * H(J, s, h));
   }
-  
-  return(Res)
+  return(Res);
 }
 
-IsingDir <- function(n, graph, thresholds, beta,responses = c(0L,1L))
+
+// VECTOR VERSIONS //
+
+
+// Hamiltonian:
+// [[Rcpp::export]]
+double Hvec(IntegerVector s, NumericVector Theta, int N)
 {
-  stopifnot(isSymmetric(graph))  
-    stopifnot(length(responses)==2)
-    if (any(diag(graph)!=0))
+  double Res = 0;
+  int c=0;
+  for (int i=0;i<N;i++)
+  {
+    Res -= Theta[c] * s[i];
+    c++;
+  }
+  for (int i=0;i<N;i++)
+  {
+    for (int j=i; j<N;j++)
     {
-      diag(graph) <- 0
-      warning("Diagonal set to 0")
+     if (j!=i) 
+     {
+       Res -= Theta[c] * s[i] * s[j]; 
+       c++;
+     }
     }
-  N <- nrow(graph)
-  Allstates <- do.call(expand.grid,lapply(1:N,function(x)c(responses[1],responses[2])))
-  P <- exp(- beta * apply(Allstates,1,function(s)H(graph,s,thresholds)))  
-  return(Allstates[sample(1:nrow(Allstates),n,TRUE,prob=P),])
+  }
+  return(Res);
 }
 
-IsingSumLikelihood <- function(graph, thresholds, beta, responses = c(0L,1L))
+// Likelihood without Z
+double fvec(IntegerMatrix Y, NumericVector Theta)
 {
-  stopifnot(isSymmetric(graph))  
-  stopifnot(length(responses)==2)
-  if (any(diag(graph)!=0))
+  double Res = 1;
+  int Np = Y.nrow();
+  int Ni = Y.ncol();
+  IntegerVector s(Ni);
+  int c = 0;
+  for (int p=0;p<Np;p++)
   {
-    diag(graph) <- 0
-    warning("Diagonal set to 0")
+    for (int i=0;i<Ni;i++)
+    {
+      s[i] = Y(p,i);
+    }
+    Res *= exp(-1.0 * Hvec(s, Theta, Ni));
   }
-  N <- nrow(graph)
-  Allstates <- do.call(expand.grid,lapply(1:N,function(x)c(responses[1],responses[2])))
-  P <- exp(- beta * apply(Allstates,1,function(s)H(graph,s,thresholds)))
-  SumScores <- rowSums(1*(Allstates==1))
-  stopifnot(require("plyr"))
-  df <- ddply(data.frame(Sum = SumScores, P = P),.(Sum),summarize,P=sum(P))
-  df$P <- df$P / sum(df$P)
-  return(df)
+  return(Res);
 }
 
-IsingLikelihood <- function(graph, thresholds, beta, responses = c(0L,1L))
+IntegerMatrix vecSampler(int n, int N, NumericVector Theta, int nIter, IntegerVector responses)
 {
-  stopifnot(isSymmetric(graph))  
-  stopifnot(length(responses)==2)
-  if (any(diag(graph)!=0))
-  {
-    diag(graph) <- 0
-    warning("Diagonal set to 0")
+   NumericVector thresh(N);
+   for (int i=0; i<N; i++)
+   {
+     thresh[i] = Theta[i];
+   }
+   
+   NumericMatrix graph(N,N);
+   int c=N+1;
+   for (int i=0;i<N;i++)
+   {
+    for (int j=i; j<N;j++)
+    {
+     if (j!=i) 
+     {
+       graph(i,j) = Theta[c];
+      graph(j,i) = Theta[c];
+       c++;
+     }
+    }
   }
-  N <- nrow(graph)
-  Allstates <- do.call(expand.grid,lapply(1:N,function(x)c(responses[1],responses[2])))
-  P <- exp(- beta * apply(Allstates,1,function(s)H(graph,s,thresholds)))
-  df <- cbind(Probability = P / sum(P), Allstates)
-  return(df)
+   
+   return(IsingSamplerCpp(n, graph, thresh, 1.0, nIter, responses, true));
 }
-  
-IsingStateProb <- function(s,graph,thresh,beta,responses=c(0L,1L))
+
+// Uniform distribution (prior):
+double FakeUnif(NumericVector x, double lower, double upper)
 {
-  if (!is.list(s)) s <- list(s)
+  double Res = 1.0;
   
-  Allstates <- do.call(expand.grid,lapply(1:N,function(x)responses))
-  Dist <- exp(- beta * apply(Allstates,1,function(s)H(graph,s,thresh)))  
-  Z <- sum(Dist)  
+  for (int i=0; i < x.length(); i++)
+  {
+    if (x[i] < lower || x[i] > upper)
+    {
+      Res = 0.0;
+      break;
+    }
+  }
   
-  sapply(s, function(x)exp(-beta*H(graph,x,thresh))/Z)
+  return(Res);
 }
-*/
+
+// Progress bar function:
+int progress_bar(double x, double N)
+{
+    // how wide you want the progress meter to be
+    int totaldotz=40;
+    double fraction = x / N;
+    // part of the progressmeter that's already "full"
+    int dotz = round(fraction * totaldotz);
+
+    // create the "meter"
+    int ii=0;
+    printf("%3.0f%% [",fraction*100);
+    // part  that's full already
+    for ( ; ii < dotz;ii++) {
+        printf("=");
+    }
+    // remaining part (spaces)
+    for ( ; ii < totaldotz;ii++) {
+        printf(" ");
+    }
+    // and back to line begin - do not forget the fflush to avoid
+    // output buffering problems!
+    printf("]\r");
+    fflush(stdout);
+}
+
+// EXCHANGE ALGORTIHM //
+// [[Rcpp::export]]
+NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses)
+{
+  int Np = Y.nrow();
+  int Ni = Y.ncol();
+  
+  // Number of parameters:
+  int Npar = Ni + (Ni*(Ni-1))/2;
+  
+  // Fantasy matrix:
+  IntegerMatrix X(Np,Ni);
+  
+  // Results matrix:
+  NumericMatrix Samples(nIter, Npar);
+  
+  // Current parameter values:
+  NumericVector curPars = runif(Npar, lowerBound, upperBound);
+  NumericVector propPars(Npar);
+  
+  double a;
+  double r;
+  
+  // START ITERATING //
+  for (int it=0; it<nIter; it++)
+  {
+    // For each parameter:
+    for (int n=0;n<Npar;n++)
+    {
+      // Propose new state:
+      for (int i=0; i<Npar; i++)
+      {
+        if (i==n)
+        {
+          propPars[i] = curPars[i] + R::rnorm(0.0,stepSize);
+        } else 
+        {
+          propPars[i] = curPars[i];
+        }
+      }
+      
+      // Simulate data with new state:
+      X =  vecSampler(Np, Ni, propPars, nIter, responses);
+      
+      // Random number:
+      r = R::runif(0,1);
+      
+      // Acceptance probability:
+      a = (FakeUnif(propPars,lowerBound,upperBound) * fvec(Y, propPars)) / (FakeUnif(curPars,lowerBound,upperBound) * fvec(Y, curPars)) * (fvec(X,curPars) / fvec(X,propPars));
+      
+      if (r < a)
+      {
+        curPars[n] = propPars[n];
+      }
+      
+      Samples(it, n) = curPars[n];
+    }
+    progress_bar((double)it, (double)nIter);
+  }
+  
+  
+  return(Samples);
+}
 
