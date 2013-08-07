@@ -401,7 +401,8 @@ int progress_bar(double x, double N)
 
 // EXCHANGE ALGORTIHM //
 // [[Rcpp::export]]
-NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses)
+NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses,
+    bool simAn, double tempStart, double tempEnd)
 {
   int Np = Y.nrow();
   int Ni = Y.ncol();
@@ -416,7 +417,8 @@ NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound
   NumericMatrix Samples(nIter, Npar);
   
   // Current parameter values:
-  NumericVector curPars = runif(Npar, lowerBound, upperBound);
+  // NumericVector curPars = runif(Npar, lowerBound, upperBound);
+  NumericVector curPars(Npar, 0.0);
   NumericVector propPars(Npar);
   
   double a;
@@ -449,10 +451,19 @@ NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound
       // Acceptance probability:
       a = (FakeUnif(propPars,lowerBound,upperBound) * fvec(Y, propPars)) / (FakeUnif(curPars,lowerBound,upperBound) * fvec(Y, curPars)) * (fvec(X,curPars) / fvec(X,propPars));
       
-      if (r < a)
+      if (!simAn)
       {
-        curPars[n] = propPars[n];
+        if (r < a)
+        {
+          curPars[n] = propPars[n];
+        }  
+      } else {
+        if (r < exp(log(a)/ (tempStart - it * (tempStart-tempEnd)/nIter)))
+        {
+          curPars[n] = propPars[n];
+        }  
       }
+      
       
       Samples(it, n) = curPars[n];
     }
