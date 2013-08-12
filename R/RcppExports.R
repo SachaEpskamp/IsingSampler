@@ -9,3 +9,15 @@ H <- function(J, s, h) {
     .Call('IsingSampler_H', PACKAGE = 'IsingSampler', J, s, h)
 }
 
+f <- function(Y, J, h) {
+    .Call('IsingSampler_f', PACKAGE = 'IsingSampler', Y, J, h)
+}
+
+Hvec <- function(s, Theta, N) {
+    .Call('IsingSampler_Hvec', PACKAGE = 'IsingSampler', s, Theta, N)
+}
+
+ExchangeAlgo <- function(Y, lowerBound, upperBound, stepSize, nIter, responses, simAn, tempStart, tempEnd) {
+    .Call('IsingSampler_ExchangeAlgo', PACKAGE = 'IsingSampler', Y, lowerBound, upperBound, stepSize, nIter, responses, simAn, tempStart, tempEnd)
+}
+

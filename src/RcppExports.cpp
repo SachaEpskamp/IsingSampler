@@ -43,3 +43,60 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// f
+double f(IntegerMatrix Y, NumericMatrix J, NumericVector h);
+RcppExport SEXP IsingSampler_f(SEXP YSEXP, SEXP JSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        IntegerMatrix Y = Rcpp::as<IntegerMatrix >(YSEXP);
+        NumericMatrix J = Rcpp::as<NumericMatrix >(JSEXP);
+        NumericVector h = Rcpp::as<NumericVector >(hSEXP);
+        double __result = f(Y, J, h);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Hvec
+double Hvec(IntegerVector s, NumericVector Theta, int N);
+RcppExport SEXP IsingSampler_Hvec(SEXP sSEXP, SEXP ThetaSEXP, SEXP NSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        IntegerVector s = Rcpp::as<IntegerVector >(sSEXP);
+        NumericVector Theta = Rcpp::as<NumericVector >(ThetaSEXP);
+        int N = Rcpp::as<int >(NSEXP);
+        double __result = Hvec(s, Theta, N);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// ExchangeAlgo
+NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses, bool simAn, double tempStart, double tempEnd);
+RcppExport SEXP IsingSampler_ExchangeAlgo(SEXP YSEXP, SEXP lowerBoundSEXP, SEXP upperBoundSEXP, SEXP stepSizeSEXP, SEXP nIterSEXP, SEXP responsesSEXP, SEXP simAnSEXP, SEXP tempStartSEXP, SEXP tempEndSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        IntegerMatrix Y = Rcpp::as<IntegerMatrix >(YSEXP);
+        double lowerBound = Rcpp::as<double >(lowerBoundSEXP);
+        double upperBound = Rcpp::as<double >(upperBoundSEXP);
+        double stepSize = Rcpp::as<double >(stepSizeSEXP);
+        int nIter = Rcpp::as<int >(nIterSEXP);
+        IntegerVector responses = Rcpp::as<IntegerVector >(responsesSEXP);
+        bool simAn = Rcpp::as<bool >(simAnSEXP);
+        double tempStart = Rcpp::as<double >(tempStartSEXP);
+        double tempEnd = Rcpp::as<double >(tempEndSEXP);
+        NumericMatrix __result = ExchangeAlgo(Y, lowerBound, upperBound, stepSize, nIter, responses, simAn, tempStart, tempEnd);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
