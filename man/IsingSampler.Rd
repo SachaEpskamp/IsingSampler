@@ -33,6 +33,9 @@ Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (defaul
   \item{method}{
 The sampling method to use. Must be \code{"MH"}, \code{"CFTP"} or \code{"direct"}. See details.
 }
+ \item{CFTPretry}{
+ The amount of times a sample from CFTP may be retried. If after 100 couplings from the past the chain still results in \code{NA} values the chain is reset with different random numbers. Be aware that data that requies a lot of CFTP resets might not resemble exact samples anymore.
+ }
 }
 \details{
 This function uses one of three sampling methods. \code{"MH"} can be used to sample using a Metropolis-Hastings algorithm. The chain is initiated with random values from the response options, then for each iteration for each node a node is set to the second response option with the probability of that node being in the second response option given all other nodes and parameters. Typically, 100 of such iterations should suffice for the chain to converge.

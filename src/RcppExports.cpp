@@ -12,13 +12,13 @@ BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        int n = Rcpp::as<int >(nSEXP);
-        NumericMatrix graph = Rcpp::as<NumericMatrix >(graphSEXP);
-        NumericVector thresholds = Rcpp::as<NumericVector >(thresholdsSEXP);
-        double beta = Rcpp::as<double >(betaSEXP);
-        int nIter = Rcpp::as<int >(nIterSEXP);
-        IntegerVector responses = Rcpp::as<IntegerVector >(responsesSEXP);
-        bool exact = Rcpp::as<bool >(exactSEXP);
+        Rcpp::traits::input_parameter< int >::type n(nSEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type graph(graphSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type thresholds(thresholdsSEXP );
+        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< int >::type nIter(nIterSEXP );
+        Rcpp::traits::input_parameter< IntegerVector >::type responses(responsesSEXP );
+        Rcpp::traits::input_parameter< bool >::type exact(exactSEXP );
         IntegerMatrix __result = IsingSamplerCpp(n, graph, thresholds, beta, nIter, responses, exact);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
@@ -33,9 +33,9 @@ BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        NumericMatrix J = Rcpp::as<NumericMatrix >(JSEXP);
-        IntegerVector s = Rcpp::as<IntegerVector >(sSEXP);
-        NumericVector h = Rcpp::as<NumericVector >(hSEXP);
+        Rcpp::traits::input_parameter< NumericMatrix >::type J(JSEXP );
+        Rcpp::traits::input_parameter< IntegerVector >::type s(sSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type h(hSEXP );
         double __result = H(J, s, h);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
@@ -50,9 +50,9 @@ BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        IntegerMatrix Y = Rcpp::as<IntegerMatrix >(YSEXP);
-        NumericMatrix J = Rcpp::as<NumericMatrix >(JSEXP);
-        NumericVector h = Rcpp::as<NumericVector >(hSEXP);
+        Rcpp::traits::input_parameter< IntegerMatrix >::type Y(YSEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type J(JSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type h(hSEXP );
         double __result = f(Y, J, h);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
@@ -67,9 +67,9 @@ BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        IntegerVector s = Rcpp::as<IntegerVector >(sSEXP);
-        NumericVector Theta = Rcpp::as<NumericVector >(ThetaSEXP);
-        int N = Rcpp::as<int >(NSEXP);
+        Rcpp::traits::input_parameter< IntegerVector >::type s(sSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type Theta(ThetaSEXP );
+        Rcpp::traits::input_parameter< int >::type N(NSEXP );
         double __result = Hvec(s, Theta, N);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
@@ -84,15 +84,15 @@ BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        IntegerMatrix Y = Rcpp::as<IntegerMatrix >(YSEXP);
-        double lowerBound = Rcpp::as<double >(lowerBoundSEXP);
-        double upperBound = Rcpp::as<double >(upperBoundSEXP);
-        double stepSize = Rcpp::as<double >(stepSizeSEXP);
-        int nIter = Rcpp::as<int >(nIterSEXP);
-        IntegerVector responses = Rcpp::as<IntegerVector >(responsesSEXP);
-        bool simAn = Rcpp::as<bool >(simAnSEXP);
-        double tempStart = Rcpp::as<double >(tempStartSEXP);
-        double tempEnd = Rcpp::as<double >(tempEndSEXP);
+        Rcpp::traits::input_parameter< IntegerMatrix >::type Y(YSEXP );
+        Rcpp::traits::input_parameter< double >::type lowerBound(lowerBoundSEXP );
+        Rcpp::traits::input_parameter< double >::type upperBound(upperBoundSEXP );
+        Rcpp::traits::input_parameter< double >::type stepSize(stepSizeSEXP );
+        Rcpp::traits::input_parameter< int >::type nIter(nIterSEXP );
+        Rcpp::traits::input_parameter< IntegerVector >::type responses(responsesSEXP );
+        Rcpp::traits::input_parameter< bool >::type simAn(simAnSEXP );
+        Rcpp::traits::input_parameter< double >::type tempStart(tempStartSEXP );
+        Rcpp::traits::input_parameter< double >::type tempEnd(tempEndSEXP );
         NumericMatrix __result = ExchangeAlgo(Y, lowerBound, upperBound, stepSize, nIter, responses, simAn, tempStart, tempEnd);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }

@@ -1,5 +1,5 @@
 # Wrapper function:
-IsingSampler <- function(n, graph, thresholds, beta = 1, nIter = 100, responses = c(0L, 1L), method = c("MH","CFTP","direct"))
+IsingSampler <- function(n, graph, thresholds, beta = 1, nIter = 100, responses = c(0L, 1L), method = c("MH","CFTP","direct"), CFTPretry = 10)
 {
   stopifnot(!missing(graph)|!missing(thresholds))
   stopifnot(isSymmetric(graph))  
@@ -14,11 +14,23 @@ IsingSampler <- function(n, graph, thresholds, beta = 1, nIter = 100, responses 
   
   if (method %in% c("MH","CFTP"))
   {
-    Res <- IsingSamplerCpp(as.integer(n), graph, thresholds, beta, as.integer(nIter), as.integer(responses), as.logical(method == "CFTP"))                 
+    try <- 1
     
-    if (any(is.na(Res)) & method == "CFTP")
-    {
-      warning("NA's detected, this means that no CFTP sample was drawn after 100 couplings to the past. Use higher nIter value or method='MH' for inexact sampling.")
+    repeat{
+      Res <- IsingSamplerCpp(as.integer(n), graph, thresholds, beta, as.integer(nIter), as.integer(responses), as.logical(method == "CFTP"))                 
+      
+      if (any(is.na(Res)) & method == "CFTP")
+      {
+        if (try < CFTPretry)
+        {
+          cat("\n Restarting CFTP chain, attempt: ",try,"\n")
+          try <- try + 1
+        } else 
+        {
+          warning(paste("NA's detected, this means that no CFTP sample was drawn after 100 couplings to the past and",CFTPretry,"resets of the chain. Use higher nIter value or method='MH' for inexact sampling."))
+          break
+        }
+      } else break
     }
   } else 
   {
