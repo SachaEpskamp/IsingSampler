@@ -5,6 +5,25 @@
 
 using namespace Rcpp;
 
+// IsingProcess
+IntegerMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thresholds, double beta, IntegerVector responses);
+RcppExport SEXP IsingSampler_IsingProcess(SEXP nSampleSEXP, SEXP graphSEXP, SEXP thresholdsSEXP, SEXP betaSEXP, SEXP responsesSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< int >::type nSample(nSampleSEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type graph(graphSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type thresholds(thresholdsSEXP );
+        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< IntegerVector >::type responses(responsesSEXP );
+        IntegerMatrix __result = IsingProcess(nSample, graph, thresholds, beta, responses);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // IsingSamplerCpp
 IntegerMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses, bool exact);
 RcppExport SEXP IsingSampler_IsingSamplerCpp(SEXP nSEXP, SEXP graphSEXP, SEXP thresholdsSEXP, SEXP betaSEXP, SEXP nIterSEXP, SEXP responsesSEXP, SEXP exactSEXP) {
@@ -78,8 +97,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // ExchangeAlgo
-NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses, bool simAn, double tempStart, double tempEnd);
-RcppExport SEXP IsingSampler_ExchangeAlgo(SEXP YSEXP, SEXP lowerBoundSEXP, SEXP upperBoundSEXP, SEXP stepSizeSEXP, SEXP nIterSEXP, SEXP responsesSEXP, SEXP simAnSEXP, SEXP tempStartSEXP, SEXP tempEndSEXP) {
+NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses, bool simAn, double tempStart, double tempEnd, NumericVector StartValues);
+RcppExport SEXP IsingSampler_ExchangeAlgo(SEXP YSEXP, SEXP lowerBoundSEXP, SEXP upperBoundSEXP, SEXP stepSizeSEXP, SEXP nIterSEXP, SEXP responsesSEXP, SEXP simAnSEXP, SEXP tempStartSEXP, SEXP tempEndSEXP, SEXP StartValuesSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
@@ -93,7 +112,8 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< bool >::type simAn(simAnSEXP );
         Rcpp::traits::input_parameter< double >::type tempStart(tempStartSEXP );
         Rcpp::traits::input_parameter< double >::type tempEnd(tempEndSEXP );
-        NumericMatrix __result = ExchangeAlgo(Y, lowerBound, upperBound, stepSize, nIter, responses, simAn, tempStart, tempEnd);
+        Rcpp::traits::input_parameter< NumericVector >::type StartValues(StartValuesSEXP );
+        NumericMatrix __result = ExchangeAlgo(Y, lowerBound, upperBound, stepSize, nIter, responses, simAn, tempStart, tempEnd, StartValues);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

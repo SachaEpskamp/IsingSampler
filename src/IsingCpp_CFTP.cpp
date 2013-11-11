@@ -217,6 +217,38 @@ IntegerVector IsingMet(NumericMatrix graph, NumericVector thresholds, double bet
   return(state);
 }
 
+
+///ISING PROCESS SAMPLER:
+// [[Rcpp::export]]
+IntegerMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thresholds, double beta, IntegerVector responses)
+{
+  // Parameters and results vector:
+  int N = graph.nrow();
+  IntegerVector state =  ifelse(runif(N) < 0.5, responses[1], responses[0]);
+  double u;
+  double P;
+  IntegerMatrix Res(nSample,N);
+  int node;
+    
+    // START ALGORITHM
+    for (int it=0;it<nSample;it++)
+    {
+      node = floor(R::runif(0,N));
+        u = runif(1)[0];
+        P = Pplus(node, graph, state, thresholds, beta, responses);
+        if (u < P)
+        {
+          state[node] = responses[1];
+        } else 
+        {
+          state[node] = responses[0];
+        }
+        for (int k=0; k<N; k++) Res(it,k) = state[k];
+    }
+   
+  return(Res);
+}
+
 // OVERAL FUNCTION //
 // [[Rcpp::export]]
 IntegerMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses, bool exact)
@@ -402,7 +434,7 @@ int progress_bar(double x, double N)
 // EXCHANGE ALGORTIHM //
 // [[Rcpp::export]]
 NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses,
-    bool simAn, double tempStart, double tempEnd)
+    bool simAn, double tempStart, double tempEnd, NumericVector StartValues)
 {
   int Np = Y.nrow();
   int Ni = Y.ncol();
@@ -419,6 +451,7 @@ NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound
   // Current parameter values:
   // NumericVector curPars = runif(Npar, lowerBound, upperBound);
   NumericVector curPars(Npar, 0.0);
+  for (int i=0; i<Npar; i++) curPars[i] = StartValues[i];
   NumericVector propPars(Npar);
   
   double a;
@@ -427,6 +460,7 @@ NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound
   // START ITERATING //
   for (int it=0; it<nIter; it++)
   {
+    progress_bar((double)it, (double)nIter);
     // For each parameter:
     for (int n=0;n<Npar;n++)
     {
@@ -467,7 +501,6 @@ NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound
       
       Samples(it, n) = curPars[n];
     }
-    progress_bar((double)it, (double)nIter);
   }
   
   
