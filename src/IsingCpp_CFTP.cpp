@@ -172,7 +172,6 @@ double Pplus(int i, NumericMatrix J, IntegerVector s, NumericVector h, double be
   
   double H0 = h[i] * responses[0]; // relevant part of the Hamiltonian for state = 0
   double H1 = h[i] * responses[1]; // relevant part of the Hamiltonian for state = 1
-  double Res;
   
   int N = J.nrow();
   
@@ -350,7 +349,6 @@ double fvec(IntegerMatrix Y, NumericVector Theta)
   int Np = Y.nrow();
   int Ni = Y.ncol();
   IntegerVector s(Ni);
-  int c = 0;
   for (int p=0;p<Np;p++)
   {
     for (int i=0;i<Ni;i++)
@@ -369,7 +367,6 @@ double fveclog(IntegerMatrix Y, NumericVector Theta)
   int Np = Y.nrow();
   int Ni = Y.ncol();
   IntegerVector s(Ni);
-  int c = 0;
   for (int p=0;p<Np;p++)
   {
     for (int i=0;i<Ni;i++)
@@ -424,7 +421,7 @@ double FakeUnif(NumericVector x, double lower, double upper)
   return(Res);
 }
 
-/*
+/* 
 // Progress bar function:
 int progress_bar(double x, double N)
 {
@@ -450,7 +447,7 @@ int progress_bar(double x, double N)
     printf("]\r");
     fflush(stdout);
 }
-*/
+*/ 
 
 // EXCHANGE ALGORTIHM //
 // [[Rcpp::export]]
