@@ -8,7 +8,8 @@ Sample states from the Ising model
 This function samples states from the Ising model using one of three methods. See details.
 }
 \usage{
-IsingSampler(n, graph, thresholds, beta = 1, nIter = 100, responses = c(0L, 1L), method = c("MH", "CFTP", "direct"))
+IsingSampler(n, graph, thresholds, beta = 1, nIter = 100, responses = c(0L, 1L), 
+    method = c("MH", "CFTP", "direct"), CFTPretry = 10)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

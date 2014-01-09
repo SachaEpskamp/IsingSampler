@@ -362,6 +362,25 @@ double fvec(IntegerMatrix Y, NumericVector Theta)
   return(Res);
 }
 
+// Log-Likelihood without Z
+double fveclog(IntegerMatrix Y, NumericVector Theta)
+{
+  double Res = 1;
+  int Np = Y.nrow();
+  int Ni = Y.ncol();
+  IntegerVector s(Ni);
+  int c = 0;
+  for (int p=0;p<Np;p++)
+  {
+    for (int i=0;i<Ni;i++)
+    {
+      s[i] = Y(p,i);
+    }
+    Res -= Hvec(s, Theta, Ni);
+  }
+  return(Res);
+}
+
 IntegerMatrix vecSampler(int n, int N, NumericVector Theta, int nIter, IntegerVector responses)
 {
    NumericVector thresh(N);
@@ -405,6 +424,7 @@ double FakeUnif(NumericVector x, double lower, double upper)
   return(Res);
 }
 
+/*
 // Progress bar function:
 int progress_bar(double x, double N)
 {
@@ -430,6 +450,7 @@ int progress_bar(double x, double N)
     printf("]\r");
     fflush(stdout);
 }
+*/
 
 // EXCHANGE ALGORTIHM //
 // [[Rcpp::export]]
@@ -460,7 +481,7 @@ NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound
   // START ITERATING //
   for (int it=0; it<nIter; it++)
   {
-    progress_bar((double)it, (double)nIter);
+   // progress_bar((double)it, (double)nIter);
     // For each parameter:
     for (int n=0;n<Npar;n++)
     {
@@ -483,7 +504,8 @@ NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound
       r = R::runif(0,1);
       
       // Acceptance probability:
-      a = (FakeUnif(propPars,lowerBound,upperBound) * fvec(Y, propPars)) / (FakeUnif(curPars,lowerBound,upperBound) * fvec(Y, curPars)) * (fvec(X,curPars) / fvec(X,propPars));
+      a = FakeUnif(propPars,lowerBound,upperBound)/FakeUnif(curPars,lowerBound,upperBound) * 
+           exp(fveclog(Y, propPars) + fveclog(X, curPars) - fveclog(Y,curPars) - fvec(X,propPars));
       
       if (!simAn)
       {

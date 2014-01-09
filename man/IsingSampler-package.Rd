@@ -29,8 +29,8 @@ Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 ## In the end are examples on how to obtain the distribution.
 
 # Input:
-N <- 6 # Number of nodes
-nSample <- 10000 # Number of samples
+N <- 5 # Number of nodes
+nSample <- 5000 # Number of samples
 
 # Ising parameters:
 Graph <- matrix(sample(0:1,N^2,TRUE,prob = c(0.7, 0.3)),N,N) * rnorm(N^2)
@@ -46,10 +46,12 @@ Resp <- c(0L,1L)
 AllStates <- do.call(expand.grid,lapply(1:N,function(x)Resp))
 
 # Simulate with metropolis:
-MetData <- IsingSampler(nSample,Graph,Thresh,Beta,1000/N,responses = Resp, method = "MH")
+MetData <- IsingSampler(nSample, Graph, Thresh, Beta, 1000/N, 
+  responses = Resp, method = "MH")
 
 # Simulate exact samples (CFTP):
-ExData <- IsingSampler(nSample,Graph,Thresh,Beta,100,responses = Resp, method = "CFTP")
+ExData <- IsingSampler(nSample, Graph, Thresh, Beta, 100,
+  responses = Resp, method = "CFTP")
 
 # Direct simulation:
 DirectData <- IsingSampler(nSample, Graph, Thresh, Beta, method = "direct")
@@ -62,11 +64,13 @@ ExpDist <- exp(- Beta * apply(AllStates,1,function(s)IsingSampler:::H(Graph,s,Th
 ExpDist <- ExpDist/sum(ExpDist) * nSample
 
 ## Plot to compare distributions:
-plot(MetDist,type="l",col="blue",pch=16,xlab="State",ylab="Freq",ylim=c(0,max(MetDist,DirectDist,ExDist)))
+plot(MetDist, type="l", col="blue", pch=16, xlab="State", ylab="Freq", 
+  ylim=c(0,max(MetDist,DirectDist,ExDist)))
 points(DirectDist,type="l",col="red",pch=16)
 points(ExpDist,type="l",col="green",pch=16)
 points(ExDist,type="l",col="purple",pch=16)
-legend("topright",col=c("blue","red","purple","green"),legend=c("Metropolis","Direct","Exact","Expected"),lty=1,bty='n')
+legend("topright", col=c("blue","red","purple","green"), 
+  legend=c("Metropolis","Direct","Exact","Expected"),lty=1,bty='n')
 
 ## Likelihoods:
 

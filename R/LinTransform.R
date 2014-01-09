@@ -1,0 +1,16 @@
+LinTransform <- function(graph, thresholds, from = c(0L, 1L), to = c(-1L, 1L), a, b)
+{
+  stopifnot(!missing(graph) & !missing(thresholds))
+
+  if (missing(a) & missing(b))
+  {  
+    a <- (to[1]-to[2])/(from[1]-from[2])    
+    b <- to[1] - a*from[1]
+  }
+  
+  diag(graph) <- 0
+  
+  return(list(
+    graph = graph/(a^2), 
+    thresholds = thresholds/a - (b*rowSums(graph))/a^2))
+}
