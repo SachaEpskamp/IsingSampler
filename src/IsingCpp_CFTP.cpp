@@ -440,7 +440,7 @@ double fveclog(IntegerMatrix Y, NumericVector Theta)
 //  return(Res);
 //}
 
-/* 
+
 // Progress bar function:
 int progress_bar(double x, double N)
 {
@@ -466,8 +466,7 @@ int progress_bar(double x, double N)
     printf("]\r");
     fflush(stdout);
 }
-<<<<<<< HEAD
-*/
+
 //
 //// EXCHANGE ALGORTIHM //
 //// [[Rcpp::export]]
@@ -545,84 +544,4 @@ int progress_bar(double x, double N)
 //  
 //  return(Samples);
 //}
-=======
-*/ 
-
-// EXCHANGE ALGORTIHM //
-// [[Rcpp::export]]
-NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses,
-    bool simAn, double tempStart, double tempEnd, NumericVector StartValues)
-{
-  int Np = Y.nrow();
-  int Ni = Y.ncol();
-  
-  // Number of parameters:
-  int Npar = Ni + (Ni*(Ni-1))/2;
-  
-  // Fantasy matrix:
-  IntegerMatrix X(Np,Ni);
-  
-  // Results matrix:
-  NumericMatrix Samples(nIter, Npar);
-  
-  // Current parameter values:
-  // NumericVector curPars = runif(Npar, lowerBound, upperBound);
-  NumericVector curPars(Npar, 0.0);
-  for (int i=0; i<Npar; i++) curPars[i] = StartValues[i];
-  NumericVector propPars(Npar);
-  
-  double a;
-  double r;
-  
-  // START ITERATING //
-  for (int it=0; it<nIter; it++)
-  {
-   // progress_bar((double)it, (double)nIter);
-    // For each parameter:
-    for (int n=0;n<Npar;n++)
-    {
-      // Propose new state:
-      for (int i=0; i<Npar; i++)
-      {
-        if (i==n)
-        {
-          propPars[i] = curPars[i] + R::rnorm(0.0,stepSize);
-        } else 
-        {
-          propPars[i] = curPars[i];
-        }
-      }
-      
-      // Simulate data with new state:
-      X =  vecSampler(Np, Ni, propPars, nIter, responses);
-      
-      // Random number:
-      r = R::runif(0,1);
-      
-      // Acceptance probability:
-      a = FakeUnif(propPars,lowerBound,upperBound)/FakeUnif(curPars,lowerBound,upperBound) * 
-           exp(fveclog(Y, propPars) + fveclog(X, curPars) - fveclog(Y,curPars) - fvec(X,propPars));
-      
-      if (!simAn)
-      {
-        if (r < a)
-        {
-          curPars[n] = propPars[n];
-        }  
-      } else {
-        if (r < exp(log(a)/ (tempStart - it * (tempStart-tempEnd)/nIter)))
-        {
-          curPars[n] = propPars[n];
-        }  
-      }
-      
-      
-      Samples(it, n) = curPars[n];
-    }
-  }
-  
-  
-  return(Samples);
-}
->>>>>>> f48b9137370d04963d24b0a6b25195ce51f08517
-
+ 
