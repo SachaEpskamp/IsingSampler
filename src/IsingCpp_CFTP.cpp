@@ -82,7 +82,8 @@ NumericVector PplusMinMax(int i, NumericMatrix J, IntegerVector s, NumericVector
 }
        
 // Inner function:
-IntegerVector IsingEx(NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses, bool exact)
+IntegerVector IsingEx(NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses, bool exact,
+IntegerVector constrain)
 {
   // Parameters and results vector:
   int N = graph.nrow();
@@ -172,7 +173,7 @@ double Pplus(int i, NumericMatrix J, IntegerVector s, NumericVector h, double be
   
   double H0 = h[i] * responses[0]; // relevant part of the Hamiltonian for state = 0
   double H1 = h[i] * responses[1]; // relevant part of the Hamiltonian for state = 1
-  double Res;
+  //double Res;
   
   int N = J.nrow();
   
@@ -189,11 +190,19 @@ double Pplus(int i, NumericMatrix J, IntegerVector s, NumericVector h, double be
 }
 
 
-IntegerVector IsingMet(NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses)
+IntegerVector IsingMet(NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses,
+IntegerVector constrain)
 {
   // Parameters and results vector:
   int N = graph.nrow();
   IntegerVector state =  ifelse(runif(N) < 0.5, responses[1], responses[0]);
+  for (int i=0; i<N; i++)
+  {
+    if (constrain[i] != INT_MIN)
+    {
+      state[i] = constrain[i];
+    }
+  }
   double u;
   double P;
     
@@ -202,14 +211,17 @@ IntegerVector IsingMet(NumericMatrix graph, NumericVector thresholds, double bet
     {
       for (int node=0;node<N;node++)
       {
-        u = runif(1)[0];
-        P = Pplus(node, graph, state, thresholds, beta, responses);
-        if (u < P)
+        if (constrain[node] == INT_MIN)
         {
-          state[node] = responses[1];
-        } else 
-        {
-          state[node] = responses[0];
+         u = runif(1)[0];
+         P = Pplus(node, graph, state, thresholds, beta, responses);
+          if (u < P)
+         {
+           state[node] = responses[1];
+         } else 
+         {
+           state[node] = responses[0];
+         } 
         }
       }
     }
@@ -251,23 +263,27 @@ IntegerMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thres
 
 // OVERAL FUNCTION //
 // [[Rcpp::export]]
-IntegerMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses, bool exact)
+IntegerMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses, bool exact,
+IntegerMatrix constrain)
 {
   int Ni = graph.nrow();
   IntegerMatrix Res(n,Ni);
   IntegerVector state(Ni);
+  IntegerVector constrainVec(Ni);
   if (exact)
   {
     for (int s=0;s<n;s++)
     {
-      state = IsingEx(graph, thresholds, beta, nIter, responses, exact);
+      for (int i=0;i<Ni;i++) constrainVec[i] = constrain(s,i);
+      state = IsingEx(graph, thresholds, beta, nIter, responses, exact, constrainVec);
       for (int i=0;i<Ni;i++) Res(s,i) = state[i];
     }
   } else 
   {
     for (int s=0;s<n;s++)
     {
-      state = IsingMet(graph, thresholds, beta, nIter, responses);
+      for (int i=0;i<Ni;i++) constrainVec[i] = constrain(s,i);
+      state = IsingMet(graph, thresholds, beta, nIter, responses, constrainVec);
       for (int i=0;i<Ni;i++) Res(s,i) = state[i];
     }
   }
@@ -380,49 +396,49 @@ double fveclog(IntegerMatrix Y, NumericVector Theta)
   }
   return(Res);
 }
-
-IntegerMatrix vecSampler(int n, int N, NumericVector Theta, int nIter, IntegerVector responses)
-{
-   NumericVector thresh(N);
-   for (int i=0; i<N; i++)
-   {
-     thresh[i] = Theta[i];
-   }
-   
-   NumericMatrix graph(N,N);
-   int c=N+1;
-   for (int i=0;i<N;i++)
-   {
-    for (int j=i; j<N;j++)
-    {
-     if (j!=i) 
-     {
-       graph(i,j) = Theta[c];
-      graph(j,i) = Theta[c];
-       c++;
-     }
-    }
-  }
-   
-   return(IsingSamplerCpp(n, graph, thresh, 1.0, nIter, responses, true));
-}
-
-// Uniform distribution (prior):
-double FakeUnif(NumericVector x, double lower, double upper)
-{
-  double Res = 1.0;
-  
-  for (int i=0; i < x.length(); i++)
-  {
-    if (x[i] < lower || x[i] > upper)
-    {
-      Res = 0.0;
-      break;
-    }
-  }
-  
-  return(Res);
-}
+//
+//IntegerMatrix vecSampler(int n, int N, NumericVector Theta, int nIter, IntegerVector responses)
+//{
+//   NumericVector thresh(N);
+//   for (int i=0; i<N; i++)
+//   {
+//     thresh[i] = Theta[i];
+//   }
+//   
+//   NumericMatrix graph(N,N);
+//   int c=N+1;
+//   for (int i=0;i<N;i++)
+//   {
+//    for (int j=i; j<N;j++)
+//    {
+//     if (j!=i) 
+//     {
+//       graph(i,j) = Theta[c];
+//      graph(j,i) = Theta[c];
+//       c++;
+//     }
+//    }
+//  }
+//   
+//   return(IsingSamplerCpp(n, graph, thresh, 1.0, nIter, responses, true));
+//}
+//
+//// Uniform distribution (prior):
+//double FakeUnif(NumericVector x, double lower, double upper)
+//{
+//  double Res = 1.0;
+//  
+//  for (int i=0; i < x.length(); i++)
+//  {
+//    if (x[i] < lower || x[i] > upper)
+//    {
+//      Res = 0.0;
+//      break;
+//    }
+//  }
+//  
+//  return(Res);
+//}
 
 /*
 // Progress bar function:
@@ -451,81 +467,81 @@ int progress_bar(double x, double N)
     fflush(stdout);
 }
 */
-
-// EXCHANGE ALGORTIHM //
-// [[Rcpp::export]]
-NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses,
-    bool simAn, double tempStart, double tempEnd, NumericVector StartValues)
-{
-  int Np = Y.nrow();
-  int Ni = Y.ncol();
-  
-  // Number of parameters:
-  int Npar = Ni + (Ni*(Ni-1))/2;
-  
-  // Fantasy matrix:
-  IntegerMatrix X(Np,Ni);
-  
-  // Results matrix:
-  NumericMatrix Samples(nIter, Npar);
-  
-  // Current parameter values:
-  // NumericVector curPars = runif(Npar, lowerBound, upperBound);
-  NumericVector curPars(Npar, 0.0);
-  for (int i=0; i<Npar; i++) curPars[i] = StartValues[i];
-  NumericVector propPars(Npar);
-  
-  double a;
-  double r;
-  
-  // START ITERATING //
-  for (int it=0; it<nIter; it++)
-  {
-   // progress_bar((double)it, (double)nIter);
-    // For each parameter:
-    for (int n=0;n<Npar;n++)
-    {
-      // Propose new state:
-      for (int i=0; i<Npar; i++)
-      {
-        if (i==n)
-        {
-          propPars[i] = curPars[i] + R::rnorm(0.0,stepSize);
-        } else 
-        {
-          propPars[i] = curPars[i];
-        }
-      }
-      
-      // Simulate data with new state:
-      X =  vecSampler(Np, Ni, propPars, nIter, responses);
-      
-      // Random number:
-      r = R::runif(0,1);
-      
-      // Acceptance probability:
-      a = FakeUnif(propPars,lowerBound,upperBound)/FakeUnif(curPars,lowerBound,upperBound) * 
-           exp(fveclog(Y, propPars) + fveclog(X, curPars) - fveclog(Y,curPars) - fvec(X,propPars));
-      
-      if (!simAn)
-      {
-        if (r < a)
-        {
-          curPars[n] = propPars[n];
-        }  
-      } else {
-        if (r < exp(log(a)/ (tempStart - it * (tempStart-tempEnd)/nIter)))
-        {
-          curPars[n] = propPars[n];
-        }  
-      }
-      
-      
-      Samples(it, n) = curPars[n];
-    }
-  }
-  
-  
-  return(Samples);
-}
+//
+//// EXCHANGE ALGORTIHM //
+//// [[Rcpp::export]]
+//NumericMatrix ExchangeAlgo(IntegerMatrix Y, double lowerBound, double upperBound, double stepSize, int nIter, IntegerVector responses,
+//    bool simAn, double tempStart, double tempEnd, NumericVector StartValues)
+//{
+//  int Np = Y.nrow();
+//  int Ni = Y.ncol();
+//  
+//  // Number of parameters:
+//  int Npar = Ni + (Ni*(Ni-1))/2;
+//  
+//  // Fantasy matrix:
+//  IntegerMatrix X(Np,Ni);
+//  
+//  // Results matrix:
+//  NumericMatrix Samples(nIter, Npar);
+//  
+//  // Current parameter values:
+//  // NumericVector curPars = runif(Npar, lowerBound, upperBound);
+//  NumericVector curPars(Npar, 0.0);
+//  for (int i=0; i<Npar; i++) curPars[i] = StartValues[i];
+//  NumericVector propPars(Npar);
+//  
+//  double a;
+//  double r;
+//  
+//  // START ITERATING //
+//  for (int it=0; it<nIter; it++)
+//  {
+//   // progress_bar((double)it, (double)nIter);
+//    // For each parameter:
+//    for (int n=0;n<Npar;n++)
+//    {
+//      // Propose new state:
+//      for (int i=0; i<Npar; i++)
+//      {
+//        if (i==n)
+//        {
+//          propPars[i] = curPars[i] + R::rnorm(0.0,stepSize);
+//        } else 
+//        {
+//          propPars[i] = curPars[i];
+//        }
+//      }
+//      
+//      // Simulate data with new state:
+//      X =  vecSampler(Np, Ni, propPars, nIter, responses);
+//      
+//      // Random number:
+//      r = R::runif(0,1);
+//      
+//      // Acceptance probability:
+//      a = FakeUnif(propPars,lowerBound,upperBound)/FakeUnif(curPars,lowerBound,upperBound) * 
+//           exp(fveclog(Y, propPars) + fveclog(X, curPars) - fveclog(Y,curPars) - fvec(X,propPars));
+//      
+//      if (!simAn)
+//      {
+//        if (r < a)
+//        {
+//          curPars[n] = propPars[n];
+//        }  
+//      } else {
+//        if (r < exp(log(a)/ (tempStart - it * (tempStart-tempEnd)/nIter)))
+//        {
+//          curPars[n] = propPars[n];
+//        }  
+//      }
+//      
+//      
+//      Samples(it, n) = curPars[n];
+//    }
+//  }
+//  
+//  
+//  return(Samples);
+//}
 
