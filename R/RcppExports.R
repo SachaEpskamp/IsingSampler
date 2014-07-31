@@ -21,3 +21,7 @@ Hvec <- function(s, Theta, N) {
     .Call('IsingSampler_Hvec', PACKAGE = 'IsingSampler', s, Theta, N)
 }
 
+PseudoLikelihood <- function(x, graph, thresholds, beta, responses, logis) {
+    .Call('IsingSampler_PseudoLikelihood', PACKAGE = 'IsingSampler', x, graph, thresholds, beta, responses, logis)
+}
+

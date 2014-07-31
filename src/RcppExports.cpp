@@ -97,3 +97,23 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// PseudoLikelihood
+double PseudoLikelihood(NumericMatrix x, NumericMatrix graph, NumericVector thresholds, double beta, IntegerVector responses, bool logis);
+RcppExport SEXP IsingSampler_PseudoLikelihood(SEXP xSEXP, SEXP graphSEXP, SEXP thresholdsSEXP, SEXP betaSEXP, SEXP responsesSEXP, SEXP logisSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type graph(graphSEXP );
+        Rcpp::traits::input_parameter< NumericVector >::type thresholds(thresholdsSEXP );
+        Rcpp::traits::input_parameter< double >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< IntegerVector >::type responses(responsesSEXP );
+        Rcpp::traits::input_parameter< bool >::type logis(logisSEXP );
+        double __result = PseudoLikelihood(x, graph, thresholds, beta, responses, logis);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
