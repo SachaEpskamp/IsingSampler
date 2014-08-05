@@ -199,3 +199,4 @@ EstimateIsingLL <- function(data, responses, beta = 1, ...){
     results = Res))
 }
 
+
