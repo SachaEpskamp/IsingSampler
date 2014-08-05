@@ -66,5 +66,5 @@ EstimateIsingPL <- function(data, responses, beta = 1, ...){
   return(list(
     graph = graph,
     thresholds = thresholds,
-    res = optimRes))
+    results = optimRes))
 }
