@@ -31,7 +31,7 @@ IsingPL <- function(
 }
 
 # Optimisation:
-EstimateIsing <- function(data, responses, beta = 1, ...){
+EstimateIsingPL <- function(data, responses, beta = 1, ...){
   if (missing(responses)){
     responses <- sort(unique(c(data)))
   }
