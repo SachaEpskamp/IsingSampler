@@ -54,7 +54,7 @@ EstimateIsingPL <- function(data, responses, beta = 1, ...){
   # Run optimizer:
   Ni <- ncol(data)
 #   optimRes <- optim(rep(0,(Ni*(Ni-1)/2)+Ni), optimFun, data = Data, ...)
-  optimRes <- nlm(optimFun, rep(0,(Ni*(Ni-1)/2)+Ni), data = Data, ...)
+  optimRes <- nlm(optimFun, rep(0,(Ni*(Ni-1)/2)+Ni), data = data, ...)
   
   # Cunstruct graph and thresholds:
   par <- optimRes$estimate
