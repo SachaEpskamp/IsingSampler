@@ -21,6 +21,22 @@ Hvec <- function(s, Theta, N) {
     .Call('IsingSampler_Hvec', PACKAGE = 'IsingSampler', s, Theta, N)
 }
 
+expvalues <- function(x) {
+    .Call('IsingSampler_expvalues', PACKAGE = 'IsingSampler', x)
+}
+
+vec2Thresh <- function(vec, P) {
+    .Call('IsingSampler_vec2Thresh', PACKAGE = 'IsingSampler', vec, P)
+}
+
+vec2Graph <- function(vec, P) {
+    .Call('IsingSampler_vec2Graph', PACKAGE = 'IsingSampler', vec, P)
+}
+
+Broderick2013 <- function(x, M, T, nIter, responses) {
+    .Call('IsingSampler_Broderick2013', PACKAGE = 'IsingSampler', x, M, T, nIter, responses)
+}
+
 PseudoLikelihood <- function(x, graph, thresholds, beta, responses, logis) {
     .Call('IsingSampler_PseudoLikelihood', PACKAGE = 'IsingSampler', x, graph, thresholds, beta, responses, logis)
 }

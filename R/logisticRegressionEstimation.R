@@ -21,7 +21,7 @@ EstimateIsingUni <- function(data, responses, beta = 1, ...){
   n <- ncol(data)
   
   # GLM for every node:
-  Res <- lapply(seq_len(n), function(i) glm(data[,i] ~ data[,-i], family = binomial))
+  Res <- lapply(seq_len(n), function(i) glm(data[,i] ~ data[,-i], family = binomial, ...))
   
   # Coefficients:
   Coefs <- lapply(Res, coef)
@@ -79,7 +79,7 @@ EstimateIsingBi <- function(data, responses, beta = 1, ...){
     for (j in seq_len(i-1)){
       # Create factor:
       fac <- factor(data[,i] + 2*data[,j])
-      Res[[i,j]] <- multinom(fac ~ data[,-c(i,j),drop=FALSE])
+      Res[[i,j]] <- multinom(fac ~ data[,-c(i,j),drop=FALSE], ...)
       coef <- coef(Res[[i,j]])
       
       if (!is.matrix(coef)){
@@ -169,7 +169,7 @@ EstimateIsingLL <- function(data, responses, beta = 1, ...){
   Margins <- alply(t(combn(seq_len(n),2)),1) 
   
   # Estimate
-  Res <- loglin(Tab, Margins, param = TRUE)
+  Res <- loglin(Tab, Margins, param = TRUE, ...)
   
   # Parameters:
   Params <- Res$param

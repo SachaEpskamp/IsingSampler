@@ -1,0 +1,2 @@
+Changes in version 0.2:
+  o Added methods for estimating the Ising model without regularization, see ?EstimateIsing

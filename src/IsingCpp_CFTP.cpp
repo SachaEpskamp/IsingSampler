@@ -545,3 +545,152 @@ int progress_bar(double x, double N)
 //  return(Samples);
 //}
  
+///// Broderick et al 2013:
+
+
+
+// Function to compute expected values:
+// [[Rcpp::export]]
+NumericVector expvalues(IntegerMatrix x){
+  // Sample size:
+  int N = x.nrow();
+  // Number of nodes:
+  int P = x.ncol();
+  int nPar = P + P*(P-1)/2;
+  // Results vector:
+  NumericVector Res(nPar, 0.0);
+  
+  int par = 0;
+  
+  // Fill
+  while (par < nPar){
+    
+    // Means:
+    for (int j=0; j<P;j++){
+      double mean = 0;
+      for (int k=0; k<N; k++){
+        mean += x(k,j) ;
+      }
+      Res[par] = mean / N ;
+      par++;
+    }
+    
+    // Covariances:
+    for (int i=0; i<P; i++){
+      for (int j=i; j<P;j++){
+        if (i != j){
+         double squared = 0;
+          for (int k=0; k<N; k++){
+            squared += x(k,i) * x(k,j) ;
+          }
+          Res[par] = squared / N;
+          par++; 
+        }
+      }
+    }
+  }
+  
+  return(Res);
+}
+
+// Function to obtain thresholds from vector:
+// [[Rcpp::export]]
+NumericVector vec2Thresh(NumericVector vec, int P){
+  NumericVector Res(P);
+  
+  for (int i=0; i<P; i++){
+    Res[i] = vec[i];
+  }
+  
+  return(Res);
+}
+
+// [[Rcpp::export]]
+NumericMatrix vec2Graph(NumericVector vec, int P){
+  NumericMatrix Res(P, P);
+  
+  int par = P;
+  
+  for (int i=0; i<P; i++){
+      for (int j=i; j<P; j++){
+        if (i != j){
+           Res(i,j) = Res(j,i) = vec[par];   
+           par++;
+        }
+      }
+  }
+  
+  return(Res);
+}
+
+// Main optimisation function:
+// [[Rcpp::export]]
+NumericVector Broderick2013(
+  IntegerMatrix x, // Data matrix
+  int M, // Number of samples  to draw
+  int T, // Number of iterations
+  int nIter, // Temporary: number of sequences, replace with convergence test
+  IntegerVector responses
+  )
+{
+  // Sample size:
+  int N = x.nrow();
+  // Number of nodes:
+  int P = x.ncol();
+  // Number of parameters:
+  int nPar = P + P*(P-1)/2;
+  // Current estimtes and new estimates:
+  NumericVector curEsts(nPar, 0.0);
+  NumericVector newEsts(nPar, 0.0);
+  
+    // Dummy constraints mat (ugly, should be removed):
+  IntegerMatrix cons(M, P);
+  std::fill(cons.begin(), cons.end(), INT_MIN);
+
+  // Observed statistics:
+  NumericVector obsStats = expvalues(x);
+  
+  // Thresholds to mimic margins:
+  for (int i=0; i<P; i++){
+    curEsts[i] = (responses[1] - responses[0]) *log(obsStats[i]);
+  }
+
+  double step = 1;
+
+  // Start iterating:
+  for (int s=0; s<nIter; s++){
+    // Set new ests:
+    for (int i=0;i<nPar;i++){
+      curEsts[i] = newEsts[i];
+    }
+    
+    // Generate monte carlo samples:
+    IntegerMatrix Samples =  IsingSamplerCpp(M, vec2Graph(curEsts, P), vec2Thresh(curEsts, P), 1.0, 1000, responses, false,cons);
+    
+    // Statistics:
+    NumericVector sampStats = expvalues(Samples);
+    
+    for (int t=0; t<T; t++){
+      // For each statistic, move up if expected value too low, down if expected value too high:
+      for (int par=0;par<nPar;par++){
+        // Estimate sampStat:
+        double stat = (sampStats[par] * exp(-(newEsts[par] - curEsts[par]) * sampStats[par]) ) / (exp(-(newEsts[par] - curEsts[par]) * sampStats[par]) );
+        
+        
+        // too high:
+        if (stat > obsStats[par]){
+          newEsts[par] -= step;
+        } else {
+          // Too low:
+          newEsts[par] += step;
+        }
+      }
+    }
+
+    step *= 0.5;
+  }
+
+
+
+  return(newEsts);
+}
