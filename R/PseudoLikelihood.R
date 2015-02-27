@@ -24,7 +24,7 @@ IsingPL <- function(
   stopifnot(is.matrix(x))
   
   # Compute pseudo likelihood:
-  PL <- PseudoLikelihood(x, graph, thresholds, beta, responses, log = TRUE)
+  PL <- PseudoLikelihood(x, graph, thresholds, beta, responses, logis = TRUE)
   
   
   return(PL)

@@ -7,10 +7,10 @@
 
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-non-refularized estimation methods for the Ising Model
+non-regularized estimation methods for the Ising Model
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+This function can be used for several non-regularized estimation methods of the Ising Model. See details.
 }
 \usage{
 EstimateIsing(data, responses, beta = 1, method = c("pl", "uni", "bi", "ll"), ...)
@@ -41,10 +41,10 @@ EstimateIsingLL(data, responses, beta = 1, ...)
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
+A list containing the estimation results:
+\item{graph}{The estimated network}
+\item{thresholds}{The estimated thresholds}
+\item{results}{The results object used in the analysis}
 %% ...
 }
 \references{
