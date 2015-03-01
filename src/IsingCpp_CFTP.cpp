@@ -442,6 +442,7 @@ double fveclog(IntegerMatrix Y, NumericVector Theta)
 
 
 // Progress bar function:
+/*
 int progress_bar(double x, double N)
 {
     // how wide you want the progress meter to be
@@ -466,6 +467,7 @@ int progress_bar(double x, double N)
     printf("]\r");
     fflush(stdout);
 }
+*/
 
 //
 //// EXCHANGE ALGORTIHM //
