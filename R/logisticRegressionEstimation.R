@@ -1,5 +1,5 @@
 # Univariate:
-EstimateIsingUni <- function(data, responses, beta = 1, ...){
+EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(data), ncol(data)), ...){
   if (missing(responses)){
     responses <- sort(unique(c(data)))
   }
@@ -7,6 +7,11 @@ EstimateIsingUni <- function(data, responses, beta = 1, ...){
   if (length(responses) != 2){
     stop("Binary data required")
   }
+
+  if (!is.logical(adj)){
+    adj <- adj != 0
+  }
+  diag(adj) <- FALSE
   
   # Rescale data to binary:
   binarize <- function(x, responses){
@@ -19,9 +24,11 @@ EstimateIsingUni <- function(data, responses, beta = 1, ...){
   
   # Number of variables:
   n <- ncol(data)
-  
+ 
   # GLM for every node:
-  Res <- lapply(seq_len(n), function(i) glm(data[,i] ~ data[,-i], family = binomial, ...))
+  Res <- lapply(seq_len(n), function(i){
+    glm(data[,i] ~ data[,adj[i,]], family = binomial, ...)
+    })
   
   # Coefficients:
   Coefs <- lapply(Res, coef)
@@ -31,7 +38,7 @@ EstimateIsingUni <- function(data, responses, beta = 1, ...){
   # Network:
   Net <- matrix(0, n, n)
   for (i in seq_len(n)){
-    Net[i,-i] <- Coefs[[i]][-1]
+    Net[i,adj[i,]] <- Coefs[[i]][-1]
   }
   # Average:
   Net <- (Net + t(Net)) / 2
@@ -135,7 +142,7 @@ EstimateIsingBi <- function(data, responses, beta = 1, ...){
   
   
 # As a loglinear model:
-EstimateIsingLL <- function(data, responses, beta = 1, ...){
+EstimateIsingLL <- function(data, responses, beta = 1, adj = matrix(1, ncol(data), ncol(data)), ...){
   if (missing(responses)){
     responses <- sort(unique(c(data)))
   }
@@ -166,11 +173,14 @@ EstimateIsingLL <- function(data, responses, beta = 1, ...){
   Tab <- table(data)
   
   # margins:
-  Margins <- alply(t(combn(seq_len(n),2)),1) 
+  adj <- as.matrix(adj)
+  rownames(adj) <- colnames(adj) <- NULL
+  Margins <- alply(which(upper.tri(adj) & adj != 0, arr.ind=TRUE),1,identity)
+  # Margins <- alply(t(combn(seq_len(n),2)),1) 
   
   # Estimate
   Res <- loglin(Tab, Margins, param = TRUE, ...)
-  
+
   # Parameters:
   Params <- Res$param
   Net <- matrix(0,n,n)
@@ -186,7 +196,9 @@ EstimateIsingLL <- function(data, responses, beta = 1, ...){
   # Network:
   for (j in seq_len(n)){
     for (i in seq_len(j-1)){
-      Net[i,j]<- Net[j,i] <- Params[[paste0(Names[[i]],".",Names[[j]])]][1,1]
+      if (paste0(Names[[i]],".",Names[[j]]) %in% names(Params)){
+        Net[i,j]<- Net[j,i] <- Params[[paste0(Names[[i]],".",Names[[j]])]][1,1]        
+      }
     }
   }
   
