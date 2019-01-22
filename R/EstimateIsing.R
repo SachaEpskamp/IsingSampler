@@ -8,8 +8,9 @@ EstimateIsing <- function(data, responses, beta = 1, method = c('pl', 'uni', 'bi
 
   method <- match.arg(method)
   
-  if (!identical(adj,matrix(1, ncol(data), nrow(data))) & !method %in% c("uni","ll")){
-    stop("Adjacency structure only supported if method = 'll' or method = 'uni'")
+  if (!identical(adj,matrix(1, ncol(data), ncol(data)))){
+
+    if (!method %in% c("uni","ll")) stop("Adjacency structure only supported if method = 'll' or method = 'uni'")
   }
 
   data <- as.matrix(data)
