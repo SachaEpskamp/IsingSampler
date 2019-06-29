@@ -175,7 +175,7 @@ EstimateIsingLL <- function(data, responses, beta = 1, adj = matrix(1, ncol(data
   # margins:
   adj <- as.matrix(adj)
   rownames(adj) <- colnames(adj) <- NULL
-  Margins <- alply(which(upper.tri(adj) & adj != 0, arr.ind=TRUE),1,identity)
+  Margins <- plyr::alply(which(upper.tri(adj) & adj != 0, arr.ind=TRUE),1,identity)
   # Margins <- alply(t(combn(seq_len(n),2)),1) 
   
   # Estimate

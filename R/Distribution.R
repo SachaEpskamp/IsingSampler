@@ -12,7 +12,7 @@ IsingSumLikelihood <- function(graph, thresholds, beta, responses = c(0L,1L))
   P <- exp(- beta * apply(Allstates,1,function(s)H(graph,s,thresholds)))
   SumScores <- rowSums(1*(Allstates==1))
 
-  df <- ddply(data.frame(Sum = SumScores, P = P),"Sum",summarize,P=sum(P))
+  df <- plyr::ddply(data.frame(Sum = SumScores, P = P),"Sum",plyr::summarize,P=sum(P))
   df$P <- df$P / sum(df$P)
   return(df)
 }
