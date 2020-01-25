@@ -8,7 +8,8 @@ Likelihood of all states from tractible Ising model.
 This function returns the likelihood of all possible states. Is only tractible up to rougly 10 nodes.
 }
 \usage{
-IsingLikelihood(graph, thresholds, beta, responses = c(0L, 1L))
+IsingLikelihood(graph, thresholds, beta, responses = c(0L, 1L),
+                 potential = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -23,6 +24,9 @@ Scalar indicating the inverse temperature.
 }
   \item{responses}{
 Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (default). Must be integers!
+}
+\item{potential}{
+Logical, return the potential instead of the probability of each state?
 }
 }
 

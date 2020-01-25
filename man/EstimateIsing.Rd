@@ -13,11 +13,15 @@ non-regularized estimation methods for the Ising Model
 This function can be used for several non-regularized estimation methods of the Ising Model. See details.
 }
 \usage{
-EstimateIsing(data, responses, beta = 1, method = c("pl", "uni", "bi", "ll"), ...)
-EstimateIsingUni(data, responses, beta = 1, ...)
+EstimateIsing(data, responses, beta = 1, method = c("pl", "uni",
+                 "bi", "ll"), adj = matrix(1, ncol(data), ncol(data)),
+                 ...)
+EstimateIsingUni(data, responses, beta = 1, adj = matrix(1, ncol(data),
+                 ncol(data)), ...)
 EstimateIsingBi(data, responses, beta = 1, ...)
 EstimateIsingPL(data, responses, beta = 1, ...)
-EstimateIsingLL(data, responses, beta = 1, ...)
+EstimateIsingLL(data, responses, beta = 1, adj = matrix(1, ncol(data),
+                 ncol(data)), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -32,6 +36,9 @@ EstimateIsingLL(data, responses, beta = 1, ...)
 }
   \item{method}{
   The method to be used. \code{pl} uses pseudolikelihood estimation, \code{uni} sequential univariate regressions, \code{bi} bivariate regressions and \code{ll} estimates the Ising model as a loglinear model.
+}
+\item{adj}{
+Adjacency matrix of the Ising model.
 }
   \item{\dots}{
  Arguments sent to estimator functions
