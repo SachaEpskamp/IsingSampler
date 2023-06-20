@@ -59,15 +59,23 @@ EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(dat
     
     #And or OR rule
     if (AND == TRUE) {
-      Net <- Net * t(Net)
+      Net <- ifelse(Net != 0 & t(Net != 0), Net, 0)
       Net <- (Net+t(Net))/2 }
     else {
-      Net<- (Net+t(Net))/2  
+      Net <- (Net+t(Net))/2  
     } }
   else {
     Net <- (Raw_Net + t(Raw_Net)) / 2
   }
   
+  # Rescale:
+  Trans <- LinTransform(Net, Thresholds, c(0,1), responses)
+  
+  return(list(
+    graph = Trans$graph,
+    thresholds = Trans$thresholds,
+    results = Res))
+}
   # Rescale:
   Trans <- LinTransform(Net, Thresholds, c(0,1), responses)
   
