@@ -35,10 +35,10 @@ EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(dat
   # Coefficients:
   Coefs <- lapply(Res, coef)
   
-  # Thresholds
+  # Thresholds:
   Thresholds <- sapply(Coefs, '[[', 1)
   
-  # P-values
+  # P-values:
   p_values <- lapply(Res, function(model) {
     coef_summary <- summary(model)$coefficients
     return(coef_summary[, "Pr(>|z|)"])
@@ -57,7 +57,7 @@ EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(dat
     }
     Net <- ifelse(Sig < alpha, Raw_Net, 0 ) 
     
-    #And or OR rule
+    #And or OR rule:
     if (AND == TRUE) {
       Net <- ifelse(Net != 0 & t(Net != 0), Net, 0)
       Net <- (Net+t(Net))/2 }
@@ -76,17 +76,7 @@ EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(dat
     thresholds = Trans$thresholds,
     results = Res))
 }
-  # Rescale:
-  Trans <- LinTransform(Net, Thresholds, c(0,1), responses)
-  
-  return(list(
-    graph = Trans$graph,
-    thresholds = Trans$thresholds,
-    results = Res))
-}
-
-
-
+ 
 
 # Bivariate DOESNT WORK WHEN 11 COUNT IS LOW!:
 EstimateIsingBi <- function(data, responses, beta = 1, ...){
