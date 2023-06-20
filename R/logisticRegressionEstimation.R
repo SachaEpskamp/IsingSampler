@@ -1,5 +1,6 @@
 # Univariate:
-EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(data), ncol(data)), ...){
+EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(data), ncol(data)), k = 0, thresholding = TRUE, alpha = 0.05, AND = TRUE, ...){
+  data <- as.matrix(data)
   if (missing(responses)){
     responses <- sort(unique(c(data)))
   }
@@ -7,7 +8,7 @@ EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(dat
   if (length(responses) != 2){
     stop("Binary data required")
   }
-
+  
   if (!is.logical(adj)){
     adj <- adj != 0
   }
@@ -24,24 +25,48 @@ EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(dat
   
   # Number of variables:
   n <- ncol(data)
- 
+  
   # GLM for every node:
   Res <- lapply(seq_len(n), function(i){
+    data <- data[rowSums(data[,-i]) != k-1,]
     glm(data[,i] ~ data[,adj[i,]], family = binomial, ...)
-    })
+  })
   
   # Coefficients:
   Coefs <- lapply(Res, coef)
   
-  # Thresholds:
+  # Thresholds
   Thresholds <- sapply(Coefs, '[[', 1)
-  # Network:
-  Net <- matrix(0, n, n)
+  
+  # P-values
+  p_values <- lapply(Res, function(model) {
+    coef_summary <- summary(model)$coefficients
+    return(coef_summary[, "Pr(>|z|)"])
+  })
+  # Raw network:
+  Raw_Net <- matrix(0, n, n)
   for (i in seq_len(n)){
-    Net[i,adj[i,]] <- Coefs[[i]][-1]
+    Raw_Net[i,adj[i,]] <- Coefs[[i]][-1]
   }
-  # Average:
-  Net <- (Net + t(Net)) / 2
+  if(thresholding == TRUE) {  
+    
+    # Test for significance
+    Sig <- matrix(0, n, n)
+    for (i in seq_len(n)){
+      Sig[i,adj[i,]] <- p_values[[i]][-1]
+    }
+    Net <- ifelse(Sig < alpha, Raw_Net, 0 ) 
+    
+    #And or OR rule
+    if (AND == TRUE) {
+      Net <- Net * t(Net)
+      Net <- (Net+t(Net))/2 }
+    else {
+      Net<- (Net+t(Net))/2  
+    } }
+  else {
+    Net <- (Raw_Net + t(Raw_Net)) / 2
+  }
   
   # Rescale:
   Trans <- LinTransform(Net, Thresholds, c(0,1), responses)
