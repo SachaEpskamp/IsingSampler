@@ -1,6 +1,14 @@
 # Univariate:
-EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(data), ncol(data)), k = 0, thresholding = TRUE, alpha = 0.05, AND = TRUE, ...){
+EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(data), ncol(data)), min_sum = -Inf, thresholding = FALSE, alpha = 0.01, AND = TRUE, ...){
   data <- as.matrix(data)
+  
+  # Check data:
+  if (min_sum > -Inf){
+    if (min(rowSums(data)) < min_sum){
+      stop("One or more sumscores in the data are lower than the threshold set using the 'min_sum' argument.")
+    }
+  }
+  
   if (missing(responses)){
     responses <- sort(unique(c(data)))
   }
@@ -28,7 +36,7 @@ EstimateIsingUni <- function(data, responses, beta = 1, adj = matrix(1, ncol(dat
   
   # GLM for every node:
   Res <- lapply(seq_len(n), function(i){
-    data <- data[rowSums(data[,-i]) != k-1,]
+    data <- data[rowSums(data[,-i]) != min_sum-1,]
     glm(data[,i] ~ data[,adj[i,]], family = binomial, ...)
   })
   

@@ -1,3 +1,7 @@
+Changes in version 0.2.2
+  o Added thresholding and minimum sum score correction to EstimateIsing Uni method
+  o 'uni' is now the default for EstimateIsing
+
 Changes in version 0.2.1
   o Added an option to IsingLikelihood to return the potential of each state
 

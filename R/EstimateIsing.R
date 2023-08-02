@@ -4,7 +4,7 @@
 # - bi: bivariate logistic regressions
 # - ll: Loglinear model
 
-EstimateIsing <- function(data, responses, beta = 1, method = c('pl', 'uni', 'bi', 'll'),adj = matrix(1, ncol(data), ncol(data)), ...){
+EstimateIsing <- function(data, responses, beta = 1, method = c('uni','pl' , 'bi', 'll'),adj = matrix(1, ncol(data), ncol(data)), ...){
 
   method <- match.arg(method)
   

@@ -13,11 +13,12 @@ non-regularized estimation methods for the Ising Model
 This function can be used for several non-regularized estimation methods of the Ising Model. See details.
 }
 \usage{
-EstimateIsing(data, responses, beta = 1, method = c("pl", "uni",
+EstimateIsing(data, responses, beta = 1, method = c("uni", "pl",
                  "bi", "ll"), adj = matrix(1, ncol(data), ncol(data)),
                  ...)
 EstimateIsingUni(data, responses, beta = 1, adj = matrix(1, ncol(data),
-                 ncol(data)), ...)
+                 ncol(data)), min_sum = -Inf, thresholding = FALSE, alpha = 0.01, 
+                 AND = TRUE, ...)
 EstimateIsingBi(data, responses, beta = 1, ...)
 EstimateIsingPL(data, responses, beta = 1, ...)
 EstimateIsingLL(data, responses, beta = 1, adj = matrix(1, ncol(data),
@@ -40,7 +41,11 @@ EstimateIsingLL(data, responses, beta = 1, adj = matrix(1, ncol(data),
 \item{adj}{
 Adjacency matrix of the Ising model.
 }
-  \item{\dots}{
+  \item{min_sum}{ The minimum sum score that is artifically possible in the dataset. Defaults to -Inf. Set this only if you know a lower sum score is not possible in the data, for example due to selection bias.}
+    \item{thresholding}{Logical, should the model be thresholded for significance?}
+    \item{alpha}{Alpha level used in thresholding}
+    \item{AND}{Logical, should an AND-rule (both regressions need to be significant) or OR-rule (one of the regressions needs to be significant) be used?}
+    \item{\dots}{
  Arguments sent to estimator functions
 }
 }
