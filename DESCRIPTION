@@ -2,7 +2,10 @@ Package: IsingSampler
 Type: Package
 Title: Sampling Methods and Distribution Functions for the Ising Model
 Version: 0.2.2
-Author: Sacha Epskamp
+Authors@R: c(
+  person("Sacha", "Epskamp", email = "mail@sachaepskamp.com",role = c("aut", "cre")),
+  person("Jesse", "Boot", role = c("ctb"))
+  )
 Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 Description: Sample states from the Ising model and compute the probability of states. Sampling can be done for any number of nodes, but due to the intractibility of the Ising model the distribution can only be computed up to ~10 nodes.
 License: GPL-2
