@@ -7,16 +7,6 @@ Sampling methods and distribution functions for the Ising model
 \description{
 This package can be used to sample states from the Ising model and compute the probability of states. Sampling can be done for any number of nodes, but due to the intractibility of the Ising model the distribution can only be computed up to ~10 nodes.
 }
-\details{
-\tabular{ll}{
-Package: \tab IsingSampler\cr
-Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2013-08-02\cr
-License: \tab What license is it under?\cr
-}
-
-}
 \author{
 Sacha Epskamp
 

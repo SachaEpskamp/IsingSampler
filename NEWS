@@ -1,4 +1,7 @@
 Changes in version 0.2.2
+  o Small change to help file
+
+Changes in version 0.2.2
   o Added thresholding and minimum sum score correction to EstimateIsing Uni method
   o 'uni' is now the default for EstimateIsing
 

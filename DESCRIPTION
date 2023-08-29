@@ -1,7 +1,7 @@
 Package: IsingSampler
 Type: Package
 Title: Sampling Methods and Distribution Functions for the Ising Model
-Version: 0.2.2
+Version: 0.2.3
 Authors@R: c(
   person("Sacha", "Epskamp", email = "mail@sachaepskamp.com",role = c("aut", "cre")),
   person("Jesse", "Boot", role = c("ctb"))
