@@ -1,7 +1,7 @@
 Package: IsingSampler
 Type: Package
 Title: Sampling Methods and Distribution Functions for the Ising Model
-Version: 0.2.3
+Version: 0.2.4
 Authors@R: c(
   person("Sacha", "Epskamp", email = "mail@sachaepskamp.com",role = c("aut", "cre")),
   person("Jesse", "Boot", role = c("ctb"))
@@ -12,4 +12,4 @@ License: GPL-2
 Imports: plyr, magrittr, nnet, dplyr
 Depends: Rcpp (>= 0.10.4), R (>= 3.0.0)
 LinkingTo: Rcpp
-URL: github.com/SachaEpskamp/IsingSampler
+URL: https://github.com/SachaEpskamp/IsingSampler
