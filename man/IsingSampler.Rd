@@ -29,7 +29,7 @@ Scalar indicating the inverse temperature.
 Number of iterations in the Metropolis and exact sampling methods.
 }
   \item{responses}{
-Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (default). Must be integers!
+Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (default). Must be integers! More than two (ordered, numeric) response options are also supported (e.g. \code{c(-1L, 0L, 1L)} or \code{1:5}), in which case the conditional distribution of each node is the categorical (softmax) generalization of the binary Ising conditional. Note that the pairwise interaction always enters the Hamiltonian as \code{J_ij * s_i * s_j}, i.e. through the (numeric) product of the response values, and that each node still has a single threshold.
 }
   \item{method}{
 The sampling method to use. Must be \code{"MH"}, \code{"CFTP"} or \code{"direct"}. See details.
@@ -40,9 +40,9 @@ The sampling method to use. Must be \code{"MH"}, \code{"CFTP"} or \code{"direct"
  \item{constrain}{A (number of samples) by (number of nodes) matrix with samples that need be constrained; \code{NA} indicates that the sample is unconstrained. Defaults to a matrix of \code{NA}s.}
 }
 \details{
-This function uses one of three sampling methods. \code{"MH"} can be used to sample using a Metropolis-Hastings algorithm. The chain is initiated with random values from the response options, then for each iteration for each node a node is set to the second response option with the probability of that node being in the second response option given all other nodes and parameters. Typically, 100 of such iterations should suffice for the chain to converge.
+This function uses one of three sampling methods. \code{"MH"} can be used to sample using a Metropolis-Hastings algorithm. The chain is initiated with random values from the response options, then for each iteration each node is redrawn from its full-conditional distribution given all other nodes and parameters. For two response options this is the usual binary update; for more than two response options the node is drawn from the categorical (softmax) full-conditional over all response options. Typically, 100 of such iterations should suffice for the chain to converge, though strongly coupled models with more than two response options may require a larger \code{nIter}.
 
-The second method, \code{"CFTP"} enhances the Metropolis-Hastings algorithm with Coupling from the Past (CFTP; Murray, 2007) to draw exact samples from the distribution. This is slower than the default Metropolis-Hastings but guarantees exact samples. However, it does depend on the graph structure and the number of nodes if these exact samples can be obtained in feasable time.
+The second method, \code{"CFTP"} enhances the Metropolis-Hastings algorithm with Coupling from the Past (CFTP; Murray, 2007) to draw exact samples from the distribution. This is slower than the default Metropolis-Hastings but guarantees exact samples. However, it does depend on the graph structure and the number of nodes if these exact samples can be obtained in feasable time. \code{"CFTP"} is currently only implemented for two response options; for more than two response options use \code{"MH"} or \code{"direct"}.
 
 The third option, \code{"direct"}, simply computes for every possibly state the probability and draws samples directly from the distribution of states by using these probabilities. This also guarantees exact samples, but quickly becomes intractible (roughly above 10 nodes).
 }

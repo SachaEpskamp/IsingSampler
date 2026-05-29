@@ -1,3 +1,10 @@
+Changes in version 0.2.5
+  o IsingSampler, IsingLikelihood, IsingSumLikelihood, IsingStateProb and IsingEntrophy now support more than two (ordered, numeric) response options (e.g. c(-1L, 0L, 1L) or 1:5). Sampling with method = "MH" uses the categorical (softmax) generalization of the binary conditional and initializes the chain uniformly over all response options; method = "direct" and the likelihood functions sum over all response combinations. The pairwise interaction enters the Hamiltonian as J_ij * s_i * s_j and each node keeps a single threshold. Binary (two-level) behaviour is unchanged.
+  o method = "CFTP" remains binary-only and now gives an informative error for more than two response options.
+  o The 'responses' argument is now validated: a clear error is given when it contains fewer than two options or any non-integer values (integer-valued doubles such as c(-1, 0, 1) remain allowed).
+  o IsingEntrophy and NodeInformation now use the current dplyr API (group_by()/summarise()), fixing an error under recent dplyr versions.
+  o Removed the obsolete src/Makevars and src/Makevars.win (the deprecated Rcpp:::LdFlags() call is no longer needed); the package now passes R CMD check --as-cran without warnings.
+
 Changes in version 0.2.4
   o Fixed URL in DESCRIPTION
 

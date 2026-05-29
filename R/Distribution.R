@@ -1,16 +1,16 @@
 IsingSumLikelihood <- function(graph, thresholds, beta, responses = c(0L,1L))
 {
-  stopifnot(isSymmetric(graph))  
-  stopifnot(length(responses)==2)
+  stopifnot(isSymmetric(graph))
+  checkResponses(responses)
   if (any(diag(graph)!=0))
   {
     diag(graph) <- 0
     warning("Diagonal set to 0")
   }
   N <- nrow(graph)
-  Allstates <- do.call(expand.grid,lapply(1:N,function(x)c(responses[1],responses[2])))
+  Allstates <- do.call(expand.grid,lapply(1:N,function(x)responses))
   P <- exp(- beta * apply(Allstates,1,function(s)H(graph,s,thresholds)))
-  SumScores <- rowSums(1*(Allstates==1))
+  SumScores <- rowSums(Allstates)
 
   df <- plyr::ddply(data.frame(Sum = SumScores, P = P),"Sum",plyr::summarize,P=sum(P))
   df$P <- df$P / sum(df$P)
@@ -19,15 +19,15 @@ IsingSumLikelihood <- function(graph, thresholds, beta, responses = c(0L,1L))
 
 IsingLikelihood <- function(graph, thresholds, beta, responses = c(0L,1L), potential = FALSE)
 {
-  stopifnot(isSymmetric(graph))  
-  stopifnot(length(responses)==2)
+  stopifnot(isSymmetric(graph))
+  checkResponses(responses)
   if (any(diag(graph)!=0))
   {
     diag(graph) <- 0
     warning("Diagonal set to 0")
   }
   N <- nrow(graph)
-  Allstates <- do.call(expand.grid,lapply(1:N,function(x)c(responses[1],responses[2])))
+  Allstates <- do.call(expand.grid,lapply(1:N,function(x)responses))
   P <- exp(- beta * apply(Allstates,1,function(s)H(graph,s,thresholds)))
   if (potential){
     df <- cbind(Potential = P, Allstates)    
@@ -40,6 +40,7 @@ IsingLikelihood <- function(graph, thresholds, beta, responses = c(0L,1L), poten
 
 IsingStateProb <- function(s,graph,thresholds,beta,responses=c(0L,1L))
 {
+  checkResponses(responses)
   if (!is.list(s)) s <- list(s)
   N <- length(s[[1]])
   Allstates <- do.call(expand.grid,lapply(1:N,function(x)responses))

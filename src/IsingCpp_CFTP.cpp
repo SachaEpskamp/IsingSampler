@@ -166,29 +166,79 @@ IntegerVector constrain)
 
 
 // FUNCTIONS FOR METROPOLIS SAMPLER //
-double Pplus(int i, NumericMatrix J, IntegerVector s, NumericVector h, double beta, IntegerVector responses)
+// Computes the full-conditional categorical distribution of node i over all
+// response options, given the (complete) states of all other nodes.
+// Returns a probability vector of length responses.size().
+// For two response options this reduces exactly to the binary Ising conditional.
+NumericVector Pcat(int i, NumericMatrix J, IntegerVector s, NumericVector h, double beta, IntegerVector responses)
 {
-  // The function computes the probability that node i is in Response 1 instead of 0, given all other nodes, which might be missing.
-  // Output: minimal and maximal probablity
-  
-  double H0 = h[i] * responses[0]; // relevant part of the Hamiltonian for state = 0
-  double H1 = h[i] * responses[1]; // relevant part of the Hamiltonian for state = 1
-
-  //double Res;
-
-  
   int N = J.nrow();
-  
+  int K = responses.size();
+
+  // Local field acting on node i: F = h_i + sum_{j != i} J_ij s_j.
+  // The conditional energy of response r is r * F, so the conditional only
+  // depends on this single scalar regardless of the number of responses.
+  double F = h[i];
   for (int j=0; j<N; j++)
   {
     if (i != j)
     {
-       H0 += J(i,j) * responses[0] * s[j];
-       H1 += J(i,j) * responses[1] * s[j];
+      F += J(i,j) * s[j];
     }
   }
-  
-  return(exp(beta * H1) / ( exp(beta * H0) + exp(beta * H1) ));
+
+  // Softmax over beta * responses[k] * F, shifted by the maximum for numerical
+  // stability (prevents overflow when beta or the field is large).
+  NumericVector P(K);
+  double maxH = beta * responses[0] * F;
+  for (int k=1; k<K; k++)
+  {
+    double Hk = beta * responses[k] * F;
+    if (Hk > maxH) maxH = Hk;
+  }
+  double sum = 0;
+  for (int k=0; k<K; k++)
+  {
+    P[k] = exp(beta * responses[k] * F - maxH);
+    sum += P[k];
+  }
+  for (int k=0; k<K; k++) P[k] /= sum;
+
+  return(P);
+}
+
+// Draws a response index from categorical probabilities P given uniform u.
+// Iterates from the last response downward so that, for two response options,
+// the mapping is identical to the original binary sampler (u < P[1] -> response 1).
+int drawResponse(NumericVector P, double u)
+{
+  int K = P.size();
+  double cum = 0;
+  for (int k=K-1; k>0; k--)
+  {
+    cum += P[k];
+    if (u < cum) return(k);
+  }
+  return(0);
+}
+
+// Initializes a random state with each node drawn uniformly from all response
+// options. For two response options this reproduces the original binary
+// initialization (uniform over the two responses); for more options it avoids
+// biasing the starting state toward the first two responses, which otherwise
+// skews the realized mode at high beta when the chain mixes slowly.
+IntegerVector randomState(int N, IntegerVector responses)
+{
+  int K = responses.size();
+  IntegerVector state(N);
+  if (K == 2)
+  {
+    state = ifelse(runif(N) < 0.5, responses[1], responses[0]);
+  } else
+  {
+    for (int i=0; i<N; i++) state[i] = responses[(int) floor(R::runif(0, K))];
+  }
+  return(state);
 }
 
 
@@ -197,7 +247,7 @@ IntegerVector constrain)
 {
   // Parameters and results vector:
   int N = graph.nrow();
-  IntegerVector state =  ifelse(runif(N) < 0.5, responses[1], responses[0]);
+  IntegerVector state = randomState(N, responses);
   for (int i=0; i<N; i++)
   {
     if (constrain[i] != INT_MIN)
@@ -206,8 +256,8 @@ IntegerVector constrain)
     }
   }
   double u;
-  double P;
-    
+  NumericVector P;
+
     // START ALGORITHM
     for (int it=0;it<nIter;it++)
     {
@@ -216,18 +266,12 @@ IntegerVector constrain)
         if (constrain[node] == INT_MIN)
         {
          u = runif(1)[0];
-         P = Pplus(node, graph, state, thresholds, beta, responses);
-          if (u < P)
-         {
-           state[node] = responses[1];
-         } else 
-         {
-           state[node] = responses[0];
-         } 
+         P = Pcat(node, graph, state, thresholds, beta, responses);
+         state[node] = responses[drawResponse(P, u)];
         }
       }
     }
-   
+
   return(state);
 }
 
@@ -238,25 +282,19 @@ IntegerMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thres
 {
   // Parameters and results vector:
   int N = graph.nrow();
-  IntegerVector state =  ifelse(runif(N) < 0.5, responses[1], responses[0]);
+  IntegerVector state = randomState(N, responses);
   double u;
-  double P;
+  NumericVector P;
   IntegerMatrix Res(nSample,N);
   int node;
-    
+
     // START ALGORITHM
     for (int it=0;it<nSample;it++)
     {
       node = floor(R::runif(0,N));
         u = runif(1)[0];
-        P = Pplus(node, graph, state, thresholds, beta, responses);
-        if (u < P)
-        {
-          state[node] = responses[1];
-        } else 
-        {
-          state[node] = responses[0];
-        }
+        P = Pcat(node, graph, state, thresholds, beta, responses);
+        state[node] = responses[drawResponse(P, u)];
         for (int k=0; k<N; k++) Res(it,k) = state[k];
     }
    
@@ -635,8 +673,6 @@ NumericVector Broderick2013(
   IntegerVector responses
   )
 {
-  // Sample size:
-  int N = x.nrow();
   // Number of nodes:
   int P = x.ncol();
   // Number of parameters:

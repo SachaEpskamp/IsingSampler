@@ -3,7 +3,8 @@ IsingPL <- function(
   x, # Vector or data frame containing data
  graph, thresholds, beta, responses = c(0L,1L))
 {
-  stopifnot(isSymmetric(graph))  
+  stopifnot(isSymmetric(graph))
+  checkResponses(responses)
   stopifnot(length(responses)==2)
   if (any(diag(graph)!=0))
   {

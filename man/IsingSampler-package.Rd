@@ -5,7 +5,7 @@
 Sampling methods and distribution functions for the Ising model
 }
 \description{
-This package can be used to sample states from the Ising model and compute the probability of states. Sampling can be done for any number of nodes, but due to the intractibility of the Ising model the distribution can only be computed up to ~10 nodes.
+This package can be used to sample states from the Ising model and compute the probability of states. Sampling can be done for any number of nodes, but due to the intractability of the Ising model the distribution can only be computed up to ~10 nodes.
 }
 \author{
 Sacha Epskamp
@@ -20,7 +20,7 @@ Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 
 # Input:
 N <- 5 # Number of nodes
-nSample <- 5000 # Number of samples
+nSample <- 1000 # Number of samples
 
 # Ising parameters:
 Graph <- matrix(sample(0:1,N^2,TRUE,prob = c(0.7, 0.3)),N,N) * rnorm(N^2)
@@ -46,7 +46,7 @@ ExData <- IsingSampler(nSample, Graph, Thresh, Beta, 100,
 # Direct simulation:
 DirectData <- IsingSampler(nSample, Graph, Thresh, Beta, method = "direct")
 
-# State distirbutions:
+# State distributions:
 MetDist <- apply(AllStates,1,function(x)sum(colSums(t(MetData) == x)==N))
 ExDist <- apply(AllStates,1,function(x)sum(colSums(t(ExData) == x)==N))
 DirectDist <- apply(AllStates,1,function(x)sum(colSums(t(DirectData) == x)==N))
