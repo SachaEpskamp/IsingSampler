@@ -8,9 +8,9 @@ checkResponses <- function(responses)
   {
     stop("'responses' must contain at least two response options.")
   }
-  if (anyNA(responses) || !is.numeric(responses) || !all(responses == round(responses)))
+  if (anyNA(responses) || !is.numeric(responses))
   {
-    stop("'responses' must contain only integers (e.g. c(0L, 1L), c(-1L, 0L, 1L) or 1:5).")
+    stop("'responses' must be numeric.")
   }
   invisible(responses)
 }
