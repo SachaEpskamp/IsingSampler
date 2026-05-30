@@ -26,24 +26,24 @@ NumericMatrix RandMat(int nrow, int ncol)
  }
 
 // Computes maximal and minimal probability of node flipping:
-NumericVector PplusMinMax(int i, NumericMatrix J, IntegerVector s, NumericVector h, double beta, IntegerVector responses)
+NumericVector PplusMinMax(int i, NumericMatrix J, NumericVector s, NumericVector h, double beta, NumericVector responses)
 {
   // The function computes the probability that node i is in Response 1 instead of 0, given all other nodes, which might be missing.
   // Output: minimal and maximal probablity
-  
+
   NumericVector H0(2, h[i] * responses[0]); // relevant part of the Hamiltonian for state = 0
   NumericVector H1(2, h[i] * responses[1]); // relevant part of the Hamiltonian for state = 1
-  
+
   NumericVector Res(2);
-  
+
   int N = J.nrow();
   NumericVector TwoOpts(2);
-  
+
   for (int j=0; j<N; j++)
   {
     if (i != j)
     {
-      if (s[j] != INT_MIN)
+      if (!ISNA(s[j]))
       {
        H0[0] += J(i,j) * responses[0] * s[j];
        H0[1] += J(i,j) * responses[0] * s[j];
@@ -82,12 +82,12 @@ NumericVector PplusMinMax(int i, NumericMatrix J, IntegerVector s, NumericVector
 }
        
 // Inner function:
-IntegerVector IsingEx(NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses, bool exact,
-IntegerVector constrain)
+NumericVector IsingEx(NumericMatrix graph, NumericVector thresholds, double beta, int nIter, NumericVector responses, bool exact,
+NumericVector constrain)
 {
   // Parameters and results vector:
   int N = graph.nrow();
-  IntegerVector state(N, INT_MIN);
+  NumericVector state(N, NA_REAL);
   double u;
   NumericVector P(2);
   int maxChain = 100;
@@ -111,8 +111,8 @@ IntegerVector constrain)
     {
       if (exact)
       {
-        state[i] = INT_MIN;
-      } else 
+        state[i] = NA_REAL;
+      } else
       {
         state[i] = ifelse(runif(1) < 0.5, responses[1], responses[0])[0];
       }
@@ -134,9 +134,9 @@ IntegerVector constrain)
           } else if (u >= P[1])
           {
             state[node] = responses[0];
-          } else 
+          } else
           {
-            state[node] = INT_MIN;
+            state[node] = NA_REAL;
           }
         }
       }
@@ -149,11 +149,11 @@ IntegerVector constrain)
       {
        for (int i=0; i<N; i++)
        {
-        if (state[i] == INT_MIN)
+        if (ISNA(state[i]))
         {
           anyNA = true;
         }
-        } 
+        }
       } 
     }    
     minT++;
@@ -170,7 +170,7 @@ IntegerVector constrain)
 // response options, given the (complete) states of all other nodes.
 // Returns a probability vector of length responses.size().
 // For two response options this reduces exactly to the binary Ising conditional.
-NumericVector Pcat(int i, NumericMatrix J, IntegerVector s, NumericVector h, double beta, IntegerVector responses)
+NumericVector Pcat(int i, NumericMatrix J, NumericVector s, NumericVector h, double beta, NumericVector responses)
 {
   int N = J.nrow();
   int K = responses.size();
@@ -227,10 +227,10 @@ int drawResponse(NumericVector P, double u)
 // initialization (uniform over the two responses); for more options it avoids
 // biasing the starting state toward the first two responses, which otherwise
 // skews the realized mode at high beta when the chain mixes slowly.
-IntegerVector randomState(int N, IntegerVector responses)
+NumericVector randomState(int N, NumericVector responses)
 {
   int K = responses.size();
-  IntegerVector state(N);
+  NumericVector state(N);
   if (K == 2)
   {
     state = ifelse(runif(N) < 0.5, responses[1], responses[0]);
@@ -242,15 +242,15 @@ IntegerVector randomState(int N, IntegerVector responses)
 }
 
 
-IntegerVector IsingMet(NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses,
-IntegerVector constrain)
+NumericVector IsingMet(NumericMatrix graph, NumericVector thresholds, double beta, int nIter, NumericVector responses,
+NumericVector constrain)
 {
   // Parameters and results vector:
   int N = graph.nrow();
-  IntegerVector state = randomState(N, responses);
+  NumericVector state = randomState(N, responses);
   for (int i=0; i<N; i++)
   {
-    if (constrain[i] != INT_MIN)
+    if (!ISNA(constrain[i]))
     {
       state[i] = constrain[i];
     }
@@ -263,7 +263,7 @@ IntegerVector constrain)
     {
       for (int node=0;node<N;node++)
       {
-        if (constrain[node] == INT_MIN)
+        if (ISNA(constrain[node]))
         {
          u = runif(1)[0];
          P = Pcat(node, graph, state, thresholds, beta, responses);
@@ -278,14 +278,14 @@ IntegerVector constrain)
 
 ///ISING PROCESS SAMPLER:
 // [[Rcpp::export]]
-IntegerMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thresholds, double beta, IntegerVector responses)
+NumericMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thresholds, double beta, NumericVector responses)
 {
   // Parameters and results vector:
   int N = graph.nrow();
-  IntegerVector state = randomState(N, responses);
+  NumericVector state = randomState(N, responses);
   double u;
   NumericVector P;
-  IntegerMatrix Res(nSample,N);
+  NumericMatrix Res(nSample,N);
   int node;
 
     // START ALGORITHM
@@ -303,13 +303,13 @@ IntegerMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thres
 
 // OVERAL FUNCTION //
 // [[Rcpp::export]]
-IntegerMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses, bool exact,
-IntegerMatrix constrain)
+NumericMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector thresholds, double beta, int nIter, NumericVector responses, bool exact,
+NumericMatrix constrain)
 {
   int Ni = graph.nrow();
-  IntegerMatrix Res(n,Ni);
-  IntegerVector state(Ni);
-  IntegerVector constrainVec(Ni);
+  NumericMatrix Res(n,Ni);
+  NumericVector state(Ni);
+  NumericVector constrainVec(Ni);
   if (exact)
   {
     for (int s=0;s<n;s++)
@@ -335,7 +335,7 @@ IntegerMatrix constrain)
 // HELPER FUNCTIONS //
 // Hamiltonian:
 // [[Rcpp::export]]
-double H(NumericMatrix J, IntegerVector s, NumericVector h)
+double H(NumericMatrix J, NumericVector s, NumericVector h)
 {
   double Res = 0;
   int N = J.nrow();
@@ -353,12 +353,12 @@ double H(NumericMatrix J, IntegerVector s, NumericVector h)
 
 // Likelihood without Z
 // [[Rcpp::export]]
-double f(IntegerMatrix Y, NumericMatrix J, NumericVector h)
+double f(NumericMatrix Y, NumericMatrix J, NumericVector h)
 {
   double Res = 1;
   int Np = Y.nrow();
   int Ni = J.ncol();
-  IntegerVector s(Ni);
+  NumericVector s(Ni);
   for (int p=0;p<Np;p++)
   {
     for (int i=0;i<Ni;i++)
@@ -591,7 +591,7 @@ int progress_bar(double x, double N)
 
 // Function to compute expected values:
 // [[Rcpp::export]]
-NumericVector expvalues(IntegerMatrix x){
+NumericVector expvalues(NumericMatrix x){
   // Sample size:
   int N = x.nrow();
   // Number of nodes:
@@ -666,11 +666,11 @@ NumericMatrix vec2Graph(NumericVector vec, int P){
 // Main optimisation function:
 // [[Rcpp::export]]
 NumericVector Broderick2013(
-  IntegerMatrix x, // Data matrix
+  NumericMatrix x, // Data matrix
   int M, // Number of samples  to draw
   int T, // Number of iterations
   int nIter, // Temporary: number of sequences, replace with convergence test
-  IntegerVector responses
+  NumericVector responses
   )
 {
   // Number of nodes:
@@ -682,8 +682,8 @@ NumericVector Broderick2013(
   NumericVector newEsts(nPar, 0.0);
   
     // Dummy constraints mat (ugly, should be removed):
-  IntegerMatrix cons(M, P);
-  std::fill(cons.begin(), cons.end(), INT_MIN);
+  NumericMatrix cons(M, P);
+  std::fill(cons.begin(), cons.end(), NA_REAL);
 
   // Observed statistics:
   NumericVector obsStats = expvalues(x);
@@ -703,7 +703,7 @@ NumericVector Broderick2013(
     }
     
     // Generate monte carlo samples:
-    IntegerMatrix Samples =  IsingSamplerCpp(M, vec2Graph(curEsts, P), vec2Thresh(curEsts, P), 1.0, 1000, responses, false,cons);
+    NumericMatrix Samples =  IsingSamplerCpp(M, vec2Graph(curEsts, P), vec2Thresh(curEsts, P), 1.0, 1000, responses, false,cons);
     
     // Statistics:
     NumericVector sampStats = expvalues(Samples);

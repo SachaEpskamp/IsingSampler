@@ -11,7 +11,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // IsingProcess
-IntegerMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thresholds, double beta, IntegerVector responses);
+NumericMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thresholds, double beta, NumericVector responses);
 RcppExport SEXP _IsingSampler_IsingProcess(SEXP nSampleSEXP, SEXP graphSEXP, SEXP thresholdsSEXP, SEXP betaSEXP, SEXP responsesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -20,13 +20,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix >::type graph(graphSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type thresholds(thresholdsSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type responses(responsesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type responses(responsesSEXP);
     rcpp_result_gen = Rcpp::wrap(IsingProcess(nSample, graph, thresholds, beta, responses));
     return rcpp_result_gen;
 END_RCPP
 }
 // IsingSamplerCpp
-IntegerMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector thresholds, double beta, int nIter, IntegerVector responses, bool exact, IntegerMatrix constrain);
+NumericMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector thresholds, double beta, int nIter, NumericVector responses, bool exact, NumericMatrix constrain);
 RcppExport SEXP _IsingSampler_IsingSamplerCpp(SEXP nSEXP, SEXP graphSEXP, SEXP thresholdsSEXP, SEXP betaSEXP, SEXP nIterSEXP, SEXP responsesSEXP, SEXP exactSEXP, SEXP constrainSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -36,33 +36,33 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type thresholds(thresholdsSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< int >::type nIter(nIterSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type responses(responsesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type responses(responsesSEXP);
     Rcpp::traits::input_parameter< bool >::type exact(exactSEXP);
-    Rcpp::traits::input_parameter< IntegerMatrix >::type constrain(constrainSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type constrain(constrainSEXP);
     rcpp_result_gen = Rcpp::wrap(IsingSamplerCpp(n, graph, thresholds, beta, nIter, responses, exact, constrain));
     return rcpp_result_gen;
 END_RCPP
 }
 // H
-double H(NumericMatrix J, IntegerVector s, NumericVector h);
+double H(NumericMatrix J, NumericVector s, NumericVector h);
 RcppExport SEXP _IsingSampler_H(SEXP JSEXP, SEXP sSEXP, SEXP hSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type J(JSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type s(sSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type s(sSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type h(hSEXP);
     rcpp_result_gen = Rcpp::wrap(H(J, s, h));
     return rcpp_result_gen;
 END_RCPP
 }
 // f
-double f(IntegerMatrix Y, NumericMatrix J, NumericVector h);
+double f(NumericMatrix Y, NumericMatrix J, NumericVector h);
 RcppExport SEXP _IsingSampler_f(SEXP YSEXP, SEXP JSEXP, SEXP hSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type Y(YSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type J(JSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type h(hSEXP);
     rcpp_result_gen = Rcpp::wrap(f(Y, J, h));
@@ -83,12 +83,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // expvalues
-NumericVector expvalues(IntegerMatrix x);
+NumericVector expvalues(NumericMatrix x);
 RcppExport SEXP _IsingSampler_expvalues(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(expvalues(x));
     return rcpp_result_gen;
 END_RCPP
@@ -118,16 +118,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Broderick2013
-NumericVector Broderick2013(IntegerMatrix x, int M, int T, int nIter, IntegerVector responses);
+NumericVector Broderick2013(NumericMatrix x, int M, int T, int nIter, NumericVector responses);
 RcppExport SEXP _IsingSampler_Broderick2013(SEXP xSEXP, SEXP MSEXP, SEXP TSEXP, SEXP nIterSEXP, SEXP responsesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
     Rcpp::traits::input_parameter< int >::type M(MSEXP);
     Rcpp::traits::input_parameter< int >::type T(TSEXP);
     Rcpp::traits::input_parameter< int >::type nIter(nIterSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type responses(responsesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type responses(responsesSEXP);
     rcpp_result_gen = Rcpp::wrap(Broderick2013(x, M, T, nIter, responses));
     return rcpp_result_gen;
 END_RCPP

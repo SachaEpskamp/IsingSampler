@@ -29,7 +29,7 @@ Scalar indicating the inverse temperature.
 Number of iterations in the Metropolis and exact sampling methods.
 }
   \item{responses}{
-Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (default). Must be integers! More than two (ordered, numeric) response options are also supported (e.g. \code{c(-1L, 0L, 1L)} or \code{1:5}), in which case the conditional distribution of each node is the categorical (softmax) generalization of the binary Ising conditional. Note that the pairwise interaction always enters the Hamiltonian as \code{J_ij * s_i * s_j}, i.e. through the (numeric) product of the response values, and that each node still has a single threshold.
+Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (default). Two or more response options are supported, and they may be any numeric values, including non-integers (e.g. \code{c(-1L, 0L, 1L)}, \code{1:5} or \code{seq(-1, 1, by = 0.5)}). With more than two options the conditional distribution of each node is the categorical (softmax) generalization of the binary Ising conditional. The pairwise interaction always enters the Hamiltonian as \code{J_ij * s_i * s_j}, i.e. through the (numeric) product of the response values, and each node has a single threshold. When all response options are integer-valued the result is an integer matrix (as before); otherwise it is a numeric (double) matrix.
 }
   \item{method}{
 The sampling method to use. Must be \code{"MH"}, \code{"CFTP"} or \code{"direct"}. See details.

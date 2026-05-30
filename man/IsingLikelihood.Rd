@@ -23,7 +23,7 @@ Vector indicating the thresholds, also known as the external field.
 Scalar indicating the inverse temperature.
 }
   \item{responses}{
-Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (default). Must be integers!
+Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (default). Two or more numeric response options are supported, including non-integer values such as \code{seq(-1, 1, by = 0.5)}.
 }
 \item{potential}{
 Logical, return the potential instead of the probability of each state?
