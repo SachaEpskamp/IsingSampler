@@ -15,7 +15,7 @@ checkResponses <- function(responses)
 }
 
 # Wrapper function:
-IsingSampler <- function(n, graph, thresholds, beta = 1, nIter = 100, responses = c(0L, 1L), method = c("MH","CFTP","direct"), CFTPretry = 10, constrain)
+IsingSampler <- function(n, graph, thresholds, beta = 1, nIter = 100, responses = c(0L, 1L), method = c("MH","CFTP","direct"), CFTPretry = 10, constrain, delta = 0)
 {
   stopifnot(!missing(graph)|!missing(thresholds))
   stopifnot(isSymmetric(graph))
@@ -25,8 +25,25 @@ IsingSampler <- function(n, graph, thresholds, beta = 1, nIter = 100, responses 
     diag(graph) <- 0
     warning("Diagonal set to 0")
   }
+  N <- ncol(graph)
+
+  # Recycle single-value thresholds / delta to one value per node:
+  if (length(thresholds) == 1L) thresholds <- rep(thresholds, N)
+  if (length(delta) == 1L) delta <- rep(delta, N)
+  if (length(thresholds) != N) stop("'thresholds' must have length 1 or the number of nodes (ncol(graph)).")
+  if (length(delta) != N) stop("'delta' must have length 1 or the number of nodes (ncol(graph)).")
+
   method <- method[1]
   if (! method %in% c("MH","CFTP","direct")) stop("method must be 'MH', 'CFTP', or 'direct'")
+
+  # The Blume-Capel quadratic (delta) term only has an identifiable effect with
+  # more than two response options: for two options delta * s^2 is an affine
+  # function of s and is absorbed into the thresholds (a constant for symmetric
+  # responses such as c(-1, 1)).
+  if (any(delta != 0) && length(responses) == 2)
+  {
+    warning("With two response options the 'delta' term is not separately identifiable from the thresholds; results are equivalent to an Ising model with adjusted thresholds.")
+  }
 
   # Exact sampling (CFTP) is only implemented for binary (two-level) responses:
   if (method == "CFTP" && length(responses) != 2)
@@ -39,16 +56,16 @@ IsingSampler <- function(n, graph, thresholds, beta = 1, nIter = 100, responses 
   {
     constrain <- matrix(NA_real_,n,ncol(graph))
   }
-  # responses and constrain are passed to C++ as doubles so that non-integer
-  # response options (e.g. seq(-1, 1, by = 0.5)) are preserved:
+  # responses, constrain and delta are passed to C++ as doubles so that
+  # non-integer response options (e.g. seq(-1, 1, by = 0.5)) are preserved:
   storage.mode(constrain) <- "double"
 
   if (method %in% c("MH","CFTP"))
   {
     try <- 1
-    
+
     repeat{
-      Res <- IsingSamplerCpp(as.integer(n), graph, thresholds, beta, as.integer(nIter), as.numeric(responses), as.logical(method == "CFTP"), constrain)
+      Res <- IsingSamplerCpp(as.integer(n), graph, thresholds, beta, as.integer(nIter), as.numeric(responses), as.logical(method == "CFTP"), constrain, as.numeric(delta))
 
       if (any(is.na(Res)) & method == "CFTP")
       {
@@ -69,14 +86,14 @@ IsingSampler <- function(n, graph, thresholds, beta = 1, nIter = 100, responses 
     if (all(responses == round(responses))) storage.mode(Res) <- "integer"
   } else
   {
-    Res <- IsingDir(n, graph, thresholds, beta, responses)
+    Res <- IsingDir(n, graph, thresholds, beta, responses, delta)
   }
-  
+
   return(Res)
 }
 
 ## direct sampling function:
-IsingDir <- function(n, graph, thresholds, beta,responses = c(0L,1L))
+IsingDir <- function(n, graph, thresholds, beta,responses = c(0L,1L), delta = 0)
 {
   stopifnot(isSymmetric(graph))
   checkResponses(responses)
@@ -86,7 +103,9 @@ IsingDir <- function(n, graph, thresholds, beta,responses = c(0L,1L))
     warning("Diagonal set to 0")
   }
   N <- nrow(graph)
+  if (length(thresholds) == 1L) thresholds <- rep(thresholds, N)
+  if (length(delta) == 1L) delta <- rep(delta, N)
   Allstates <- do.call(expand.grid,lapply(1:N,function(x)responses))
-  P <- exp(- beta * apply(Allstates,1,function(s)H(graph,s,thresholds)))  
+  P <- exp(- beta * apply(Allstates,1,function(s)H(graph,s,thresholds,delta)))
   return(Allstates[sample(1:nrow(Allstates),n,TRUE,prob=P),])
 }

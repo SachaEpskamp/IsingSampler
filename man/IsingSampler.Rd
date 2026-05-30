@@ -8,8 +8,8 @@ Sample states from the Ising model
 This function samples states from the Ising model using one of three methods. See details.
 }
 \usage{
-IsingSampler(n, graph, thresholds, beta = 1, nIter = 100, responses = c(0L, 1L), 
-    method = c("MH", "CFTP", "direct"), CFTPretry = 10, constrain)
+IsingSampler(n, graph, thresholds, beta = 1, nIter = 100, responses = c(0L, 1L),
+    method = c("MH", "CFTP", "direct"), CFTPretry = 10, constrain, delta = 0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -38,6 +38,9 @@ The sampling method to use. Must be \code{"MH"}, \code{"CFTP"} or \code{"direct"
  The amount of times a sample from CFTP may be retried. If after 100 couplings from the past the chain still results in \code{NA} values the chain is reset with different random numbers. Be aware that data that requies a lot of CFTP resets might not resemble exact samples anymore.
  }
  \item{constrain}{A (number of samples) by (number of nodes) matrix with samples that need be constrained; \code{NA} indicates that the sample is unconstrained. Defaults to a matrix of \code{NA}s.}
+  \item{delta}{
+Optional per-node quadratic (Blume-Capel single-ion / crystal-field) term added to the Hamiltonian as \code{delta_i * s_i^2}. Either a single value (recycled over nodes) or a vector with one value per node. The default \code{0} reproduces the ordinary Ising model. A positive \code{delta} favours response options near zero (the middle category); a negative \code{delta} favours the extreme categories. This term only has an identifiable effect with more than two response options; with two response options it is absorbed into the thresholds (and is constant, hence has no effect, for symmetric responses such as \code{c(-1, 1)}). See \code{\link{BlumeCapelSampler}}.
+}
 }
 \details{
 This function uses one of three sampling methods. \code{"MH"} can be used to sample using a Metropolis-Hastings algorithm. The chain is initiated with random values from the response options, then for each iteration each node is redrawn from its full-conditional distribution given all other nodes and parameters. For two response options this is the usual binary update; for more than two response options the node is drawn from the categorical (softmax) full-conditional over all response options. Typically, 100 of such iterations should suffice for the chain to converge, though strongly coupled models with more than two response options may require a larger \code{nIter}.
@@ -56,7 +59,7 @@ Sacha Epskamp (mail@sachaepskamp.com)
 }
 
 \seealso{
-\code{\link{IsingSampler-package}} for examples
+\code{\link{IsingSampler-package}} for examples; \code{\link{BlumeCapelSampler}} for the Blume-Capel (quadratic / crystal-field) extension.
 }
 \examples{
 ## See IsingSampler-package help page

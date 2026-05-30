@@ -25,6 +25,30 @@ NumericMatrix RandMat(int nrow, int ncol)
   return(Res);
  }
 
+// Resolve the optional 'delta' (single-ion / Blume-Capel quadratic term)
+// argument to a concrete length-N vector. R_NilValue (NULL) -> all zeros (pure
+// Ising). A single value is recycled to all nodes; a length-N vector is used
+// as-is. Other lengths are an error.
+NumericVector resolveDelta(Nullable<NumericVector> delta, int N)
+{
+  NumericVector out(N); // zero-initialized
+  if (delta.isNotNull())
+  {
+    NumericVector d(delta);
+    if (d.size() == N)
+    {
+      for (int i=0;i<N;i++) out[i] = d[i];
+    } else if (d.size() == 1)
+    {
+      for (int i=0;i<N;i++) out[i] = d[0];
+    } else if (d.size() != 0)
+    {
+      stop("'delta' must have length 1 or the number of nodes.");
+    }
+  }
+  return out;
+}
+
 // Computes maximal and minimal probability of node flipping:
 NumericVector PplusMinMax(int i, NumericMatrix J, NumericVector s, NumericVector h, double beta, NumericVector responses)
 {
@@ -169,15 +193,16 @@ NumericVector constrain)
 // Computes the full-conditional categorical distribution of node i over all
 // response options, given the (complete) states of all other nodes.
 // Returns a probability vector of length responses.size().
-// For two response options this reduces exactly to the binary Ising conditional.
-NumericVector Pcat(int i, NumericMatrix J, NumericVector s, NumericVector h, double beta, NumericVector responses)
+// For two response options (and delta = 0) this reduces exactly to the binary
+// Ising conditional. 'delta' is the per-node Blume-Capel quadratic term.
+NumericVector Pcat(int i, NumericMatrix J, NumericVector s, NumericVector h, double beta, NumericVector responses, NumericVector delta)
 {
   int N = J.nrow();
   int K = responses.size();
 
   // Local field acting on node i: F = h_i + sum_{j != i} J_ij s_j.
-  // The conditional energy of response r is r * F, so the conditional only
-  // depends on this single scalar regardless of the number of responses.
+  // The part of -H depending on s_i is r * F - delta_i * r^2 (H contains the
+  // term +delta_i * s_i^2), so the conditional depends only on F and delta_i.
   double F = h[i];
   for (int j=0; j<N; j++)
   {
@@ -187,19 +212,20 @@ NumericVector Pcat(int i, NumericMatrix J, NumericVector s, NumericVector h, dou
     }
   }
 
-  // Softmax over beta * responses[k] * F, shifted by the maximum for numerical
-  // stability (prevents overflow when beta or the field is large).
+  // Softmax over beta * (responses[k] * F - delta_i * responses[k]^2), shifted by
+  // the maximum for numerical stability (prevents overflow when beta or the
+  // field is large).
   NumericVector P(K);
-  double maxH = beta * responses[0] * F;
+  double maxH = beta * (responses[0] * F - delta[i] * responses[0] * responses[0]);
   for (int k=1; k<K; k++)
   {
-    double Hk = beta * responses[k] * F;
+    double Hk = beta * (responses[k] * F - delta[i] * responses[k] * responses[k]);
     if (Hk > maxH) maxH = Hk;
   }
   double sum = 0;
   for (int k=0; k<K; k++)
   {
-    P[k] = exp(beta * responses[k] * F - maxH);
+    P[k] = exp(beta * (responses[k] * F - delta[i] * responses[k] * responses[k]) - maxH);
     sum += P[k];
   }
   for (int k=0; k<K; k++) P[k] /= sum;
@@ -243,7 +269,7 @@ NumericVector randomState(int N, NumericVector responses)
 
 
 NumericVector IsingMet(NumericMatrix graph, NumericVector thresholds, double beta, int nIter, NumericVector responses,
-NumericVector constrain)
+NumericVector constrain, NumericVector delta)
 {
   // Parameters and results vector:
   int N = graph.nrow();
@@ -266,7 +292,7 @@ NumericVector constrain)
         if (ISNA(constrain[node]))
         {
          u = runif(1)[0];
-         P = Pcat(node, graph, state, thresholds, beta, responses);
+         P = Pcat(node, graph, state, thresholds, beta, responses, delta);
          state[node] = responses[drawResponse(P, u)];
         }
       }
@@ -278,10 +304,11 @@ NumericVector constrain)
 
 ///ISING PROCESS SAMPLER:
 // [[Rcpp::export]]
-NumericMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thresholds, double beta, NumericVector responses)
+NumericMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thresholds, double beta, NumericVector responses, Nullable<NumericVector> delta = R_NilValue)
 {
   // Parameters and results vector:
   int N = graph.nrow();
+  NumericVector deltaVec = resolveDelta(delta, N);
   NumericVector state = randomState(N, responses);
   double u;
   NumericVector P;
@@ -293,7 +320,7 @@ NumericMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thres
     {
       node = floor(R::runif(0,N));
         u = runif(1)[0];
-        P = Pcat(node, graph, state, thresholds, beta, responses);
+        P = Pcat(node, graph, state, thresholds, beta, responses, deltaVec);
         state[node] = responses[drawResponse(P, u)];
         for (int k=0; k<N; k++) Res(it,k) = state[k];
     }
@@ -304,44 +331,60 @@ NumericMatrix IsingProcess(int nSample, NumericMatrix graph, NumericVector thres
 // OVERAL FUNCTION //
 // [[Rcpp::export]]
 NumericMatrix IsingSamplerCpp(int n, NumericMatrix graph, NumericVector thresholds, double beta, int nIter, NumericVector responses, bool exact,
-NumericMatrix constrain)
+NumericMatrix constrain, Nullable<NumericVector> delta = R_NilValue)
 {
   int Ni = graph.nrow();
   NumericMatrix Res(n,Ni);
   NumericVector state(Ni);
   NumericVector constrainVec(Ni);
+  NumericVector deltaVec = resolveDelta(delta, Ni);
   if (exact)
   {
+    // Exact sampling (CFTP) is only used with two response options (enforced in
+    // R). For two response options the on-site term delta_i * s_i^2 is an affine
+    // function of s_i and folds exactly into the thresholds:
+    //   delta_i * s_i^2 = delta_i*(r0+r1)*s_i - delta_i*r0*r1,
+    // and the constant cancels in the conditional. Since H uses -h_i*s_i and
+    // +delta_i*s_i^2, the effective threshold is h_i - delta_i*(r0+r1). This keeps
+    // CFTP correct without changing the coupling routines.
+    NumericVector threshEff(Ni);
+    double rsum = responses[0] + responses[1];
+    for (int i=0;i<Ni;i++) threshEff[i] = thresholds[i] - deltaVec[i] * rsum;
     for (int s=0;s<n;s++)
     {
       for (int i=0;i<Ni;i++) constrainVec[i] = constrain(s,i);
-      state = IsingEx(graph, thresholds, beta, nIter, responses, exact, constrainVec);
+      state = IsingEx(graph, threshEff, beta, nIter, responses, exact, constrainVec);
       for (int i=0;i<Ni;i++) Res(s,i) = state[i];
     }
-  } else 
+  } else
   {
     for (int s=0;s<n;s++)
     {
       for (int i=0;i<Ni;i++) constrainVec[i] = constrain(s,i);
-      state = IsingMet(graph, thresholds, beta, nIter, responses, constrainVec);
+      state = IsingMet(graph, thresholds, beta, nIter, responses, constrainVec, deltaVec);
       for (int i=0;i<Ni;i++) Res(s,i) = state[i];
     }
   }
-  
+
   return(Res);
 }
 
 
 // HELPER FUNCTIONS //
 // Hamiltonian:
+// H = - sum_i h_i s_i - sum_{i<j} J_ij s_i s_j + sum_i delta_i s_i^2
+// The last (Blume-Capel single-ion / quadratic) term is optional; delta = NULL
+// reproduces the pure Ising Hamiltonian.
 // [[Rcpp::export]]
-double H(NumericMatrix J, NumericVector s, NumericVector h)
+double H(NumericMatrix J, NumericVector s, NumericVector h, Nullable<NumericVector> delta = R_NilValue)
 {
   double Res = 0;
   int N = J.nrow();
+  NumericVector d = resolveDelta(delta, N);
   for (int i=0;i<N;i++)
   {
     Res -= h[i] * s[i];
+    Res += d[i] * s[i] * s[i];
     for (int j=i;j<N;j++)
     {
       if (j!=i) Res -= J(i,j) * s[i] * s[j];
@@ -353,7 +396,7 @@ double H(NumericMatrix J, NumericVector s, NumericVector h)
 
 // Likelihood without Z
 // [[Rcpp::export]]
-double f(NumericMatrix Y, NumericMatrix J, NumericVector h)
+double f(NumericMatrix Y, NumericMatrix J, NumericVector h, Nullable<NumericVector> delta = R_NilValue)
 {
   double Res = 1;
   int Np = Y.nrow();
@@ -365,7 +408,7 @@ double f(NumericMatrix Y, NumericMatrix J, NumericVector h)
     {
       s[i] = Y(p,i);
     }
-    Res *= exp(-1.0 * H(J, s, h));
+    Res *= exp(-1.0 * H(J, s, h, delta));
   }
   return(Res);
 }

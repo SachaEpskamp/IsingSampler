@@ -8,7 +8,7 @@ Likelihood of single state from tractible Ising model.
 This function returns the likelihood of a single possible state. Is only tractible up to rougly 10 nodes.
 }
 \usage{
-IsingStateProb(s, graph, thresholds, beta, responses = c(0L, 1L))
+IsingStateProb(s, graph, thresholds, beta, responses = c(0L, 1L), delta = 0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -26,6 +26,9 @@ Scalar indicating the inverse temperature.
 }
   \item{responses}{
 Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (default). Two or more numeric response options are supported, including non-integer values such as \code{seq(-1, 1, by = 0.5)}.
+}
+  \item{delta}{
+Optional per-node quadratic (Blume-Capel) term added to the Hamiltonian as \code{delta_i * s_i^2}; a single value (recycled over nodes) or one value per node. The default \code{0} corresponds to the ordinary Ising model. See \code{\link{BlumeCapelSampler}}.
 }
 }
 

@@ -1,5 +1,6 @@
 useDynLib(IsingSampler)
 export(IsingSampler)
+export(BlumeCapelSampler)
 export(IsingSumLikelihood)
 export(IsingLikelihood)
 export(IsingStateProb)

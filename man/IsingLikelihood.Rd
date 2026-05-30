@@ -9,7 +9,7 @@ This function returns the likelihood of all possible states. Is only tractible u
 }
 \usage{
 IsingLikelihood(graph, thresholds, beta, responses = c(0L, 1L),
-                 potential = FALSE)
+                 potential = FALSE, delta = 0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -27,6 +27,9 @@ Response options. Typically set to \code{c(-1L, 1L)} or \code{c(0L, 1L)} (defaul
 }
 \item{potential}{
 Logical, return the potential instead of the probability of each state?
+}
+  \item{delta}{
+Optional per-node quadratic (Blume-Capel) term added to the Hamiltonian as \code{delta_i * s_i^2}; a single value (recycled over nodes) or one value per node. The default \code{0} corresponds to the ordinary Ising model. See \code{\link{BlumeCapelSampler}}.
 }
 }
 
